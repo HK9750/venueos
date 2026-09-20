@@ -1,0 +1,77 @@
+name: CI
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+      - name: Verify modules
+        run: |
+          go mod verify
+          go -C tools mod verify
+      - name: Verify generated code
+        run: |
+          make generate
+          git diff --exit-code
+      - name: Unit and race tests
+        run: go test -race -coverprofile=coverage.out ./...
+      - name: PostgreSQL integration tests
+        run: go test -tags=integration -count=1 ./internal/user/postgres
+      - name: Vet
+        run: go vet ./...
+      - name: Vulnerability scan
+        run: make vulncheck
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.13.2
+
+  build-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        command: [api, worker, migrate]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: venueos:${{ matrix.command }}-ci
+          build-args: COMMAND=${{ matrix.command }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

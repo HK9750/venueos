@@ -1,0 +1,51 @@
+# Go binaries, test binaries, and build output
+/bin/
+/build/
+/dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Coverage, profiling, tracing, and benchmarks
+coverage.*
+/coverage/
+*.prof
+*.pprof
+*.trace
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+/.secrets/
+
+# Logs and local runtime data
+*.log
+/data/
+/.data/
+/tmp/
+/.tmp/
+
+# Local tooling and caches
+/.cache/
+/.golangci-cache/
+/.sqlc-cache/
+
+# Editors
+.idea/
+.vscode/
+.fleet/
+*.swp
+*.swo
+*~
+
+# Operating systems
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini

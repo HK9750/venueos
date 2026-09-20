@@ -1,0 +1,13 @@
+.cache/
+.git/
+.github/
+bin/
+dist/
+tools/
+.env
+.env.*
+coverage.out
+coverage.html
+*.md
+compose.yaml
+
