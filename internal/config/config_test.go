@@ -33,13 +33,25 @@ func TestWorkerIgnoresInvalidHTTPConfiguration(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://example")
 	t.Setenv("LOG_FORMAT", "text")
 	t.Setenv("HTTP_READ_TIMEOUT", "not-a-duration")
-	t.Setenv("METRICS_ENABLED", "not-a-boolean")
 
 	if _, err := LoadWorker(); err != nil {
 		t.Fatalf("LoadWorker() error = %v", err)
 	}
 	if _, err := LoadAPI(); err == nil {
 		t.Fatal("LoadAPI() succeeded with an invalid HTTP timeout")
+	}
+}
+
+func TestWorkerValidatesQueueConfiguration(t *testing.T) {
+	t.Setenv("DATABASE_URL", "postgres://example")
+	t.Setenv("LOG_FORMAT", "text")
+	t.Setenv("WORKER_BATCH_SIZE", "101")
+	t.Setenv("WORKER_LEASE_DURATION", "1m")
+	t.Setenv("WORKER_JOB_TIMEOUT", "1m")
+
+	_, err := LoadWorker()
+	if err == nil || !strings.Contains(err.Error(), "WORKER_BATCH_SIZE") || !strings.Contains(err.Error(), "WORKER_LEASE_DURATION") {
+		t.Fatalf("LoadWorker() error = %v, want batch and lease validation errors", err)
 	}
 }
 

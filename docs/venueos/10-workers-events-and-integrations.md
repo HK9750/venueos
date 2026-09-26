@@ -11,6 +11,15 @@ Jobs are at-least-once. Every handler must therefore be idempotent through a sta
 dedupe key, target-state check, unique constraint, provider idempotency key, or
 combination. “The queue delivers once” is never an assumption.
 
+The foundation runner implements atomic bounded claims, expired-lease reclamation,
+owner-checked completion, full-jitter exponential retry, terminal dead-lettering,
+per-handler timeouts, and explicit type/schema registration. Claims commit before
+handler execution. The configured lease must exceed the handler timeout; heartbeat
+support is reserved for a later long-running handler that cannot be split into
+bounded work. Process shutdown leaves active leases untouched so another replica
+can reclaim them after expiry. Unknown raw errors are persisted only as a generic
+safe message; handlers must opt in to any bounded operator-safe detail.
+
 ## Job Record and States
 
 Required fields: ID, organization (nullable only for platform jobs), type, schema
@@ -209,3 +218,6 @@ request ID, and audit. Direct editing of job/business rows is not an operating m
 - Large exports stream within memory bound and escape formula payloads.
 - Per-class concurrency proves critical jobs progress during bulk delivery backlog.
 
+The current foundation integration suite verifies tenant-aware enqueue deduplication,
+exclusive leases across competing owners, owner-checked state transitions, retries,
+successful completion, final-attempt lease expiry, and dead-letter sweeping.

@@ -12,7 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/HK9750/venueos/internal/platform/apperror"
 	"github.com/HK9750/venueos/internal/user"
+	"github.com/HK9750/venueos/pkg/requestid"
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -48,7 +50,7 @@ func (s *Server) Readyz(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	if err := s.readiness.Ping(ctx); err != nil {
 		s.logger.WarnContext(r.Context(), "readiness check failed", slog.Any("error", err), slog.Group("request", requestLogAttrs(r.Context())...))
-		writeProblem(w, r, http.StatusServiceUnavailable, "Service unavailable", "a required dependency is unavailable", nil)
+		writeAPIError(w, r, http.StatusServiceUnavailable, apperror.CodeDependencyUnavailable, "A required dependency is unavailable.", nil)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -78,7 +80,7 @@ func (s *Server) ListUsers(w http.ResponseWriter, r *http.Request, params ListUs
 func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil || mediaType != "application/json" {
-		writeProblem(w, r, http.StatusUnsupportedMediaType, "Unsupported media type", "Content-Type must be application/json", nil)
+		writeAPIError(w, r, http.StatusUnsupportedMediaType, apperror.CodeUnsupportedMediaType, "Content-Type must be application/json.", nil)
 		return
 	}
 
@@ -87,10 +89,10 @@ func (s *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err := decodeJSON(r.Body, &body); err != nil {
 		var maxBytesError *http.MaxBytesError
 		if errors.As(err, &maxBytesError) {
-			writeProblem(w, r, http.StatusRequestEntityTooLarge, "Request entity too large", "request body must not exceed 1 MiB", nil)
+			writeAPIError(w, r, http.StatusRequestEntityTooLarge, apperror.CodePayloadTooLarge, "Request body must not exceed 1 MiB.", nil)
 			return
 		}
-		writeProblem(w, r, http.StatusBadRequest, "Invalid request", err.Error(), nil)
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeMalformedRequest, "Request body must be one valid JSON object.", nil)
 		return
 	}
 
@@ -115,14 +117,14 @@ func (s *Server) GetUser(w http.ResponseWriter, r *http.Request, id uuid.UUID) {
 func (s *Server) writeServiceError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, user.ErrInvalid):
-		writeProblem(w, r, http.StatusBadRequest, "Invalid request", rootDetail(err), nil)
+		writeAPIError(w, r, http.StatusUnprocessableEntity, apperror.CodeValidationFailed, rootDetail(err), nil)
 	case errors.Is(err, user.ErrNotFound):
-		writeProblem(w, r, http.StatusNotFound, "User not found", "the requested user does not exist", nil)
+		writeAPIError(w, r, http.StatusNotFound, apperror.CodeNotFound, "The requested user does not exist.", nil)
 	case errors.Is(err, user.ErrConflict):
-		writeProblem(w, r, http.StatusConflict, "User already exists", "a user with this email already exists", nil)
+		writeAPIError(w, r, http.StatusConflict, apperror.CodeConflict, "A user with this email already exists.", nil)
 	default:
 		s.logger.ErrorContext(r.Context(), "request failed", slog.Any("error", err), slog.Group("request", requestLogAttrs(r.Context())...))
-		writeProblem(w, r, http.StatusInternalServerError, "Internal server error", "an unexpected error occurred", nil)
+		writeAPIError(w, r, http.StatusInternalServerError, apperror.CodeInternal, "An unexpected error occurred.", nil)
 	}
 }
 
@@ -154,22 +156,26 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	_ = json.NewEncoder(w).Encode(value)
 }
 
-func writeProblem(w http.ResponseWriter, r *http.Request, status int, title, detail string, validationErrors map[string]string) {
-	instance := r.URL.RequestURI()
-	problemType := "about:blank"
-	problem := Problem{
-		Type:     problemType,
-		Title:    title,
-		Status:   status,
-		Detail:   &detail,
-		Instance: &instance,
+func writeAPIError(w http.ResponseWriter, r *http.Request, status int, code apperror.Code, message string, details []ErrorDetail) {
+	requestID := requestid.FromContext(r.Context())
+	if !requestid.Valid(requestID) {
+		requestID = requestid.New()
+		w.Header().Set(requestid.Header, requestID)
 	}
-	if len(validationErrors) > 0 {
-		problem.Errors = &validationErrors
+	response := ErrorResponse{Error: APIError{
+		Code:      string(code),
+		Message:   message,
+		RequestId: requestID,
+	}}
+	if len(details) > 0 {
+		if len(details) > apperror.MaxDetails {
+			details = details[:apperror.MaxDetails]
+		}
+		response.Error.Details = &details
 	}
-	w.Header().Set("Content-Type", "application/problem+json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(problem)
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func rootDetail(err error) string {

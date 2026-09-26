@@ -53,6 +53,12 @@ Application use cases own transaction boundaries through a small transaction por
 Repositories participate through transaction-scoped handles without beginning or
 committing behind the caller's back.
 
+The PostgreSQL transaction runner retries only SQLSTATE `40001` serialization
+failures and `40P01` deadlocks. Its default is three total attempts with bounded
+full-jitter backoff from 10 to 100 milliseconds. Because the complete closure may
+run again, it must contain only retry-safe database work and no provider calls or
+other external side effects.
+
 Transaction checklist:
 
 1. check context/deadline before beginning;
@@ -198,4 +204,3 @@ Migration/backfill/deploy/flag/rollback:
 Documentation and ADR:
 Acceptance evidence:
 ```
-

@@ -78,6 +78,13 @@ Redaction is centralized and tested.
 Metric labels must be bounded. Organization/session/order/job IDs belong in traces or
 logs, never Prometheus labels.
 
+The worker foundation exports completed run count and duration by registered job
+type/result/class, plus due queue depth and oldest due age by registered type.
+Unsupported records collapse to the static `unsupported` label and exhausted lease
+sweeps to `expired_lease`; arbitrary database job types never become metric labels.
+The worker exposes these metrics on the same separately configured admin listener
+policy as the API process.
+
 ## Tracing
 
 Use OpenTelemetry across inbound HTTP, application use case, SQL/Redis/provider/
@@ -198,4 +205,3 @@ reversible mitigations, communicate known facts and next update time, and never 
 uncertainty. After stabilization, reconcile financial/inventory state, notify
 affected parties as required, produce blameless review with owned actions, and add
 tests/alerts/runbook improvements.
-

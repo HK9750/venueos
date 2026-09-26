@@ -11,9 +11,13 @@ import (
 )
 
 type Metrics struct {
-	requests *prometheus.CounterVec
-	duration *prometheus.HistogramVec
-	registry *prometheus.Registry
+	requests    *prometheus.CounterVec
+	duration    *prometheus.HistogramVec
+	jobRuns     *prometheus.CounterVec
+	jobDuration *prometheus.HistogramVec
+	jobDepth    *prometheus.GaugeVec
+	jobOldest   *prometheus.GaugeVec
+	registry    *prometheus.Registry
 }
 
 func NewMetrics() *Metrics {
@@ -30,10 +34,39 @@ func NewMetrics() *Metrics {
 			Help:      "HTTP request duration in seconds.",
 			Buckets:   prometheus.DefBuckets,
 		}, []string{"method", "route"}),
+		jobRuns: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "service",
+			Name:      "worker_jobs_total",
+			Help:      "Total durable jobs completed by result and failure class.",
+		}, []string{"job_type", "result", "failure_class"}),
+		jobDuration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: "service",
+			Name:      "worker_job_duration_seconds",
+			Help:      "Durable job handler duration in seconds.",
+			Buckets:   prometheus.DefBuckets,
+		}, []string{"job_type", "result"}),
+		jobDepth: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "service", Name: "worker_queue_depth",
+			Help: "Number of due durable jobs by registered job type.",
+		}, []string{"job_type"}),
+		jobOldest: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+			Namespace: "service", Name: "worker_queue_oldest_age_seconds",
+			Help: "Age in seconds of the oldest due durable job by registered job type.",
+		}, []string{"job_type"}),
 		registry: registry,
 	}
-	registry.MustRegister(m.requests, m.duration, collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	registry.MustRegister(m.requests, m.duration, m.jobRuns, m.jobDuration, m.jobDepth, m.jobOldest, collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	return m
+}
+
+func (m *Metrics) ObserveJobQueue(jobType string, depth int64, oldestAge time.Duration) {
+	m.jobDepth.WithLabelValues(jobType).Set(float64(depth))
+	m.jobOldest.WithLabelValues(jobType).Set(oldestAge.Seconds())
+}
+
+func (m *Metrics) ObserveJob(jobType, result, failureClass string, duration time.Duration) {
+	m.jobRuns.WithLabelValues(jobType, result, failureClass).Inc()
+	m.jobDuration.WithLabelValues(jobType, result).Observe(duration.Seconds())
 }
 
 func (m *Metrics) Handler() http.Handler {

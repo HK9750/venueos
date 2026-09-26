@@ -138,6 +138,19 @@ hashes support deduplication without exposing plaintext.
 | `audit_entries` | append-only tenant, actor/type/ID, action, subject, request/trace, before/after-safe diffs, reason, occurred time, source IP/device |
 | `realtime_events` | session/topic sequence unique, event ID/type/version/payload, occurred/retention expiry |
 
+Migration `00002_create_platform_tenancy.sql` implements the initial
+`organizations`, `idempotency_records`, `outbox_events`, and `audit_entries`
+foundation. Application-supplied UUIDs allow the UUIDv7 generator to remain
+consistent; all three platform record tables require an organization foreign key;
+idempotency scope is unique; outbox state/lease fields are mutually constrained;
+and database triggers reject audit updates and deletes. Migration
+`00003_create_jobs_and_inbox.sql` adds provider inbox deduplication and the durable
+job state machine. Tenant jobs carry an organization foreign key; only explicitly
+platform-scoped jobs may leave it null. Job type plus dedupe key is unique within
+tenant scope (including the null platform scope), payloads and errors are bounded,
+and lease/terminal timestamps are constrained by state. RLS remains an explicit
+open decision and is not implicitly enabled by these migrations.
+
 Claim jobs/events with `FOR UPDATE SKIP LOCKED`, a lease expiry, bounded batch size,
 and commit before execution. A unique dedupe key prevents logically duplicate jobs.
 Large/raw provider bodies can live in encrypted object storage with hash/reference,
@@ -199,4 +212,3 @@ Each migration review documents forward compatibility, rollback/roll-forward,
 expected locks/duration, backfill, disk growth, replication impact, and verification
 query. CI applies migrations from empty and from the latest supported production
 snapshot, then runs schema/query tests.
-

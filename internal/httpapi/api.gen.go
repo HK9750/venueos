@@ -22,29 +22,42 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// APIError defines model for APIError.
+type APIError struct {
+	Code      string            `json:"code"`
+	Details   *[]ErrorDetail    `json:"details,omitempty"`
+	Message   string            `json:"message"`
+	RequestId RequestIdentifier `json:"request_id"`
+}
+
 // CreateUser defines model for CreateUser.
 type CreateUser struct {
 	Email openapi_types.Email `json:"email"`
 	Name  string              `json:"name"`
 }
 
-// Problem defines model for Problem.
-type Problem struct {
-	Detail   *string            `json:"detail,omitempty"`
-	Errors   *map[string]string `json:"errors,omitempty"`
-	Instance *string            `json:"instance,omitempty"`
-	Status   int                `json:"status"`
-	Title    string             `json:"title"`
-	Type     string             `json:"type"`
+// ErrorDetail defines model for ErrorDetail.
+type ErrorDetail struct {
+	Code    string  `json:"code"`
+	Field   *string `json:"field,omitempty"`
+	Message string  `json:"message"`
 }
+
+// ErrorResponse Example: {"error":{"code":"validation_failed","details":[{"code":"invalid","field":"currency","message":"Use a supported currency."}],"message":"The request is invalid.","request_id":"req_01JEXAMPLE"}}
+type ErrorResponse struct {
+	Error APIError `json:"error"`
+}
+
+// RequestIdentifier defines model for RequestIdentifier.
+type RequestIdentifier = string
 
 // User defines model for User.
 type User struct {
-	CreatedAt time.Time           `json:"createdAt"`
+	CreatedAt time.Time           `json:"created_at"`
 	Email     openapi_types.Email `json:"email"`
 	Id        openapi_types.UUID  `json:"id"`
 	Name      string              `json:"name"`
-	UpdatedAt time.Time           `json:"updatedAt"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 // UserList defines model for UserList.
@@ -53,6 +66,9 @@ type UserList struct {
 	Limit  int    `json:"limit"`
 	Offset int    `json:"offset"`
 }
+
+// Problem Example: {"error":{"code":"validation_failed","details":[{"code":"invalid","field":"currency","message":"Use a supported currency."}],"message":"The request is invalid.","request_id":"req_01JEXAMPLE"}}
+type Problem = ErrorResponse
 
 // ListUsersParams defines parameters for ListUsers.
 type ListUsersParams struct {
@@ -339,23 +355,27 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"vFZNb9w2E/4rxLzvrcqubK9RWDfXQFoDBmqkTS+BD7Q4WjERP0KOtt0u9N8LUh8rRVo366a9UZrhfDzz",
-	"zAwPkBtljUZNHrIDOPTWaI/x49GZ5wpVOOZGE2oKR25tJXNO0ui1bTW+++iNDjKfl6h4OP3fYQEZ/G99",
-	"tL9upX7d222aJgGBPnfSBnOQwa1m797esZvN9fesM876mFYQ9DsjwcedQ0743qOLcQkhgxVePTpj0ZEM",
-	"WRS88piAHf06ACouq3AojFOcIOv+JKD4Hw+ot1RCdnm9SYD2FiEDT07qLTQJaK4w3BwpXqRpAkrq4Xt2",
-	"rUnA4edaOhSQfRicRVtPg7Z5/og5BScj4M/ISiB1ac2iRueM86ftLVyZBSW1J65znOBWO/nGYYEOg2QB",
-	"L0+cat8hJlWtILu+uYl4tV+bNB2uSU24RRfdS6rwhcCmMcDfQR6lvdUhqiXsX0GnPPJQ3NIkLMEJ35BU",
-	"i7CcZuBMVYpptrUU8AIxZ4LaivOi+wK66G5C2WSU8dj+KTgfpKczIZWEanp4aaDEmh05y53j+/BdSSVp",
-	"BMqIX6YoPC7Kvkw/BtDbGi7Oc21ijxSmbcXxULvXkiSvWBiijufECuMYlch+Q13jz7+wZ55/Qi1W7NcS",
-	"We3RMdTCGqnJM+4w6pLj2nfwMUJlK07IfCVzZFwL9rusKoY7U+2CvjP1toz3hMlrhZpQMKlsheEchzdz",
-	"hgvF7Wroiwz6gG4f7yGBHTrfZnCxSldphM2i5lZCBlerdHUFCVhOZSzQukReUflnOG9baENFo697ARn8",
-	"1MmT6Za5TDdzyAIQ1pkcvWfSM17JXT//a6W420MGdyXmnwatoKHR+6i0dsjF/nQo71rx10bi0e0CzjnX",
-	"zGGOchfrURQyXwVUrtOrUxQdHIy23jwJgRa1QJ3vWYhcHhPZXawDIfzJVEJzvY8aoRaOK6So/uEAMsT/",
-	"uUa37zs3G2h83NQCC15XBNllmhzng9R0ddkuxHZO91uu+0oW+mbZY9cwiy4XPfY+FvZC8zQrWfrC8+S8",
-	"Z8kwqpbeJczyLTJTxPb0seqbND1lcqHqgSXpa1kSwmo9B0PW+AUijF5D7QRDTz8Ysf9m+IwcNNMpSa7G",
-	"ZlaZi29amaWqhP+s20VhjJXIRdcrD6b1NHXyte+WpnlFfTfpzXn6F1dn6l//V3xrS8145Nx0EK0PUjQn",
-	"p9GPSB0Dl2ZR2BXHwRAfFlMSJYu1Wnzx/OujYIlwYRl0rYUigvOqSbBJN2fp/4NKvkXKy2Mhgwzdrq9K",
-	"7SrIYA3NU/PXAA==",
+	"xFhtb9s2EP4rBNdPm19kxxlWfcuabPOQoUG2DMUCz2DEk81WIhWS8uIa+u/DUa+26TbOvPZLK4tHPnfP",
+	"PXc8ZUMjlWZKgrSGhhu6BMZBu8dbeMzB2Okl/uBgIi0yK5SkIX2bsccciC4tSKS0hoThIhEcpBWxAD2g",
+	"PYoWQgOnodU59KiJlpAyPPCVhpiG9Jthiz8sV82wRm6OokVR4GEmU9KA8+5Gq4cEUnyMlLQgLT6yLEtE",
+	"5DwZvjfo6+aZmFdaK31bIZR42zFfEGPZQwLkT5A5vP2dXNxMCeAuUjuGEXcIfNevAulPLw/BV+bDluzC",
+	"YVdu4baLm6lzzsXHuUB/WHKjVQbaCjA0jFlioEezzitkhQP+n7Kna5ALu6Th95MezZi1oDGgv+9Z/+MM",
+	"/wn6r+ezb1/RHrXrDGhIjdVCLqjjwDKRuAOFhdQ8i8ZLtwm3p+xpWm47D5rTmdZs7VbBGLbY9fI8CDyO",
+	"VFqbC/4S9XSVeF9S08JvHT5rsNXDe4gsYr/RwCzcGTg2B5AiD+GGxkqnzNKwetPrxjs+n3jilSzdJWaE",
+	"xKRCNr/3tu3EWYO5s3yBdbP1NdQVC0j4bpTjHzyWz5fKp3N9kIWm9D/HAzyxNEucHdRlWbJBVywR3DWf",
+	"ecxEApx2Cui+MRPSGdImfhrlWoOM1h1HQ3pngDBi8ixT2gIntdGAFrOu3R/LthMLQ6rTB9uyDvHHPBj9",
+	"evXu4reb6yvH045Y62g+VVxNM9rTmnvro3e/Hj0J35Z1V0YX/b9KEQ3m/dl3Xhm9oDIjV9J8zuxWeXJm",
+	"oW9FCj6Yw9W8Zyr4ll2eC+4zq4t8byHP+JHu7aTD4W3Vf68b8xaCL2lI6bUw9khamzviWZeFy1uxfy8k",
+	"IhW2w4uQFhalqYpjA961XQKcA/VZzcb9WHGjkLHan3KmUljBEoLzhWaRJbHSxC7bCeCBRR9A8gHBEswN",
+	"aAKSZ0pIawjT4GytZtJU9BELaZYwC8QkIgLCJCf/iCQhsFLJCu21yhdLt4+rKE9BYuEL7Df4XE5YWjGe",
+	"sgwL3AqbAA1pZyShPboCbcoIRoNgEDjaMpAsEzSkZ4NgcEZdiS1dgnAESezyIz4vSmoxow5rymlIf6nW",
+	"dwawcTDZpwyJyLSKwBjsRSwRq5NORXmaMr2mIX2zhOhDA4UwEoxxKhhqYHx9OJ7bcvm54RjQK0xWxCTR",
+	"EIFYuaTGsYhOFVmPngdnh3Y0Xg7rkdfHBIcMJMfrgWD4omVjNRrmpvLQyweW+Z2zQFVoloJ15vcbKpCE",
+	"xxz0uu4iYVNQ7VjNIWZ5Ymk4DnptrxLSno3LSUekedqOL9WvnqeC/YhV6XohvYg1RuDBmO3lPTjZN0TT",
+	"NL2fDxlbAFGxaxTmdNKZBMGhHR7poNSCl0oNYyvdx4MyZTxq6szKzQDyo+Lrk5HcASiKYvcTs9hL7+ik",
+	"6fWlFt+T6nLdyeu1KpG2Qdq5QIu+hhhwrvPf6V9QGJPg9XH2o7Mj7c+Psx+Pv5SwS00R5sS93TaHG8GL",
+	"g73zZ7CV1H2dE+/Yto25kezwH0Q+Myz+743Lp+zOpwVwR87X61uTYHKU/X+Qw09go2WrBlwDvapTm+uE",
+	"hnRIi1nx7wA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

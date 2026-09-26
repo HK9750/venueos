@@ -58,6 +58,7 @@ Status mapping:
 | 409 | state conflict, inventory unavailable, idempotency mismatch, duplicate |
 | 412 | version/ETag precondition failed |
 | 413 | body too large |
+| 415 | unsupported request media type |
 | 422 | syntactically valid but domain validation failed |
 | 429 | rate limit/quota exceeded |
 | 500 | unexpected internal failure with generic message |
@@ -241,4 +242,3 @@ waits for supported-client policy and measured usage.
   and errors.
 - A compatibility diff blocks unapproved breaking contract changes.
 - Fuzz tests target JSON parsing, cursors, identifiers, QR data, and webhook headers.
-

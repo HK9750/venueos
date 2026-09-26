@@ -19,46 +19,57 @@ contracts, migrations, authorization, observability, recovery, tests, and docs.
 
 | Area | Status | Current state | Next action |
 |---|---|---|---|
-| API process | foundation | `net/http`, middleware, health/readiness, metrics and tracing | Introduce `/v1` VenueOS error/auth/tenant contract |
-| Worker process | foundation | Runnable worker lifecycle and telemetry | Add PostgreSQL job/outbox claim loop |
-| Migration process | foundation | Explicit Goose command and embedded migrations | Add platform/organization schema using expand-safe migration |
-| PostgreSQL | foundation | pgx pool and readiness | Add transaction runner, tenant-scoped query conventions and pool metrics |
-| OpenAPI | foundation | Generated example user API | Add organization slice, then retire example user contract deliberately |
-| SQLC | foundation | Generated example repository | Split query packages by owning VenueOS domain as domains arrive |
-| Observability | foundation | structured logging, Prometheus and OpenTelemetry | Add stable error/domain/job metrics and redaction tests |
+| API process | foundation | `net/http`, middleware, health/readiness, metrics, tracing, and stable VenueOS error envelope | Introduce `/v1` auth and tenant context |
+| Worker process | implemented | PostgreSQL job claim/lease/retry/dead-letter lifecycle, bounded handlers, tracing and metrics | Register the first domain handler and add outbox relay |
+| Migration process | foundation | Embedded users plus organization/audit/outbox/idempotency/inbox/job migrations with rollback tests | Add membership schemas in the organization slice |
+| PostgreSQL | foundation | pgx pool, readiness, bounded transaction retry, and atomic platform record writes | Add tenant-scoped domain repositories and pool metrics |
+| OpenAPI | foundation | Common error contract plus generated example user API | Add organization slice, then retire example user contract deliberately |
+| SQLC | foundation | Separate generated user and platform query packages | Split additional query packages by owning VenueOS domain as domains arrive |
+| Observability | foundation | structured logging, Prometheus/OpenTelemetry, and bounded worker job/queue metrics | Add stable API error/domain metrics and broader redaction tests |
+| Platform primitives | implemented | UUIDv7 IDs, checked minor-unit money, UTC clocks, stable error codes, bounded validation | Adopt in the first organization vertical slice |
 | CI/container | foundation | generation, race, integration, lint, vulnerability and image builds | Add contract compatibility, migration matrix, secret/image scans |
 | VenueOS documentation | verified | complete product-to-delivery planning set | Keep synchronized with every implementation slice |
 
 ## Epic 0 — Project Identity and Baseline
 
-Status: `implemented` by project bootstrap; verify after first clean CI run.
+Status: `implemented`; the development baseline is verified, while the license and
+Milestone 0 ownership decisions remain open.
 
 - [x] Create separate `venueos` project from the reusable template.
 - [x] Rename root and tools Go modules to `github.com/HK9750/venueos`.
 - [x] Rename service defaults, CI image tags, OpenAPI title and local database.
 - [x] Carry VenueOS `AGENTS.md`, repository skill and detailed planning docs.
 - [x] Initialize an independent local Git repository with default branch `main`.
-- [ ] Configure the intended source-control remote.
+- [x] Configure the intended source-control remote.
 - [ ] Choose and add the project license.
-- [ ] Run clean generation/test/race/vet/lint/vulnerability/build checks.
-- [ ] Confirm the supported Go version is available in local and CI environments.
+- [x] Run clean generation/test/race/vet/lint/vulnerability/build checks.
+- [x] Confirm the supported Go version is available locally and is pinned for CI.
 - [ ] Record deployment/provider owners for open Milestone 0 decisions.
+
+Baseline evidence (2026-09-23): Go 1.27.1 matched `go.mod`; module verification,
+generation with a clean generated diff, unit tests, race tests, vet, lint,
+`govulncheck`, command builds, the Testcontainers PostgreSQL integration suite,
+and API/worker/migrate container builds passed. The configured GitHub `origin` had
+already completed [CI run #1](https://github.com/HK9750/venueos/actions/runs/35519773383)
+successfully on 2026-09-20, including tests, lint, and all three image builds.
 
 Gate: clean clone can configure, generate, test, build, migrate and run all three
 commands without access to production secrets.
 
 ## Epic 1 — Platform Contracts
 
-Status: `not_started`.
+Status: `in_progress`.
 
-1. Define VenueOS API error envelope, request ID and cursor schemas in OpenAPI.
-2. Introduce typed platform packages for identifiers, money, clock and validation.
-3. Add transaction runner with isolation/deadlock classification and bounded retry.
-4. Add organization-aware principal/context types without selecting an OIDC vendor.
-5. Add audit, idempotency, outbox, inbox and job table migrations.
-6. Implement atomic audit/outbox/idempotency repository primitives.
-7. Implement worker claim/lease/retry/dead-letter loop and operational metrics.
-8. Add generated-code cleanliness and migration-from-empty CI checks.
+1. [x] Define the VenueOS API error envelope and request ID schema in OpenAPI;
+   cursor schemas remain with the first cursor-paginated endpoint.
+2. [x] Introduce typed platform packages for identifiers, money, clock, validation,
+   and stable application error codes.
+3. [x] Add transaction runner with isolation/deadlock classification and bounded retry.
+4. [ ] Add organization-aware principal/context types without selecting an OIDC vendor.
+5. [x] Add audit, idempotency, outbox, inbox and job table migrations.
+6. [x] Implement atomic audit/outbox/idempotency repository primitives.
+7. [x] Implement worker claim/lease/retry/dead-letter loop and operational metrics.
+8. [ ] Add generated-code cleanliness and migration-from-empty CI checks.
 
 Gate: a synthetic tenant-scoped command can commit mutation + audit + outbox +
 idempotency result once, replay safely, and be consumed by two competing workers.
@@ -140,16 +151,17 @@ and GA evidence. See milestones 13–14 and the traceability matrix.
 
 Keep these as small reviewable changes, in order:
 
-1. Project bootstrap verification and baseline status update.
-2. ADR-0001 confirming modular monolith and domain boundaries.
-3. VenueOS platform IDs, money, clock, error codes and tests.
-4. Organization/audit/outbox/idempotency initial migration.
-5. Transaction runner and atomic platform repositories.
-6. Durable job runner with lease, retry and dead-letter tests.
-7. Organization domain plus create/get OpenAPI vertical slice.
-8. Membership roles/authorization plus cross-tenant suite.
-9. Invitation lifecycle vertical slice.
-10. API keys and OIDC adapter contract.
+1. [x] Project bootstrap verification and baseline status update.
+2. [x] [ADR-0001](adr/0001-modular-monolith-and-domain-boundaries.md) confirming
+   modular monolith and domain boundaries.
+3. [x] VenueOS platform IDs, money, clock, error codes and tests.
+4. [x] Organization/audit/outbox/idempotency initial migration.
+5. [x] Transaction runner and atomic platform repositories.
+6. [x] Durable job runner with lease, retry and dead-letter tests.
+7. [ ] Organization domain plus create/get OpenAPI vertical slice.
+8. [ ] Membership roles/authorization plus cross-tenant suite.
+9. [ ] Invitation lifecycle vertical slice.
+10. [ ] API keys and OIDC adapter contract.
 
 Each change must satisfy the feature worksheet in `16-engineering-conventions.md`
 and the repository `AGENTS.md` definition of done.

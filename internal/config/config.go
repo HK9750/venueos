@@ -33,7 +33,7 @@ type WorkerConfig struct {
 	App       App
 	Database  Database
 	Log       Log
-	Telemetry Tracing
+	Telemetry Telemetry
 	Worker    Worker
 }
 
@@ -91,7 +91,12 @@ type Tracing struct {
 }
 
 type Worker struct {
-	Interval time.Duration `env:"WORKER_INTERVAL" envDefault:"30s"`
+	Interval       time.Duration `env:"WORKER_INTERVAL" envDefault:"1s"`
+	BatchSize      int32         `env:"WORKER_BATCH_SIZE" envDefault:"25"`
+	LeaseDuration  time.Duration `env:"WORKER_LEASE_DURATION" envDefault:"2m"`
+	JobTimeout     time.Duration `env:"WORKER_JOB_TIMEOUT" envDefault:"90s"`
+	RetryBaseDelay time.Duration `env:"WORKER_RETRY_BASE_DELAY" envDefault:"1s"`
+	RetryMaxDelay  time.Duration `env:"WORKER_RETRY_MAX_DELAY" envDefault:"15m"`
 }
 
 func Load() (Config, error) {
@@ -147,7 +152,7 @@ func (c WorkerConfig) Validate() error {
 		validateApp(c.App),
 		validateDatabase(c.Database),
 		validateLog(c.App, c.Log),
-		validateTracing(c.Telemetry),
+		validateTelemetry(c.App, c.Telemetry, true),
 		validateWorker(c.Worker),
 	)
 }
@@ -234,10 +239,23 @@ func validateTracing(cfg Tracing) error {
 }
 
 func validateWorker(cfg Worker) error {
+	var errs []error
 	if cfg.Interval <= 0 {
-		return errors.New("WORKER_INTERVAL must be positive")
+		errs = append(errs, errors.New("WORKER_INTERVAL must be positive"))
 	}
-	return nil
+	if cfg.BatchSize < 1 || cfg.BatchSize > 100 {
+		errs = append(errs, errors.New("WORKER_BATCH_SIZE must be between 1 and 100"))
+	}
+	if cfg.JobTimeout <= 0 {
+		errs = append(errs, errors.New("WORKER_JOB_TIMEOUT must be positive"))
+	}
+	if cfg.LeaseDuration <= cfg.JobTimeout {
+		errs = append(errs, errors.New("WORKER_LEASE_DURATION must exceed WORKER_JOB_TIMEOUT"))
+	}
+	if cfg.RetryBaseDelay <= 0 || cfg.RetryMaxDelay < cfg.RetryBaseDelay {
+		errs = append(errs, errors.New("worker retry delays must be positive and max must not be below base"))
+	}
+	return errors.Join(errs...)
 }
 
 func oneOf(value string, allowed ...string) bool {

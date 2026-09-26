@@ -7,6 +7,7 @@ import (
 
 	"github.com/HK9750/venueos/internal/config"
 	"github.com/HK9750/venueos/internal/observability"
+	"github.com/HK9750/venueos/internal/platform/apperror"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -15,7 +16,7 @@ func NewHandler(server *Server, cfg config.Telemetry, logger *slog.Logger, metri
 	generated := HandlerWithOptions(server, StdHTTPServerOptions{
 		BaseRouter: mux,
 		ErrorHandlerFunc: func(w http.ResponseWriter, r *http.Request, err error) {
-			writeProblem(w, r, http.StatusBadRequest, "Invalid request parameter", err.Error(), nil)
+			writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "A request parameter is invalid.", nil)
 		},
 	})
 

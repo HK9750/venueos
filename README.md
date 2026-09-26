@@ -12,10 +12,16 @@ and migration processes.
 
 ## Implementation Status
 
-The runtime template is operational, while VenueOS business domains are planned but
-not yet implemented. The current example `user` API proves the HTTP, OpenAPI, SQLC,
-database, test, and generation pipeline; it is transitional and will be replaced by
-the organization/access vertical slice.
+The runtime template and first platform contracts are operational. VenueOS now has
+its stable API error envelope plus UUIDv7 identifiers, checked minor-unit money,
+injectable UTC clocks, application error codes, and bounded validation details.
+The initial organization, audit, outbox, inbox, idempotency, and durable job schema
+is implemented with an append-only audit trail, bounded transaction retry, atomic
+platform record repositories, and a lease-safe worker with bounded retry,
+dead-letter recovery, tracing, and Prometheus queue metrics. Business domains are
+otherwise still planned. The current example
+`user` API proves the HTTP, OpenAPI, SQLC, database, test, and generation pipeline;
+it is transitional and will be replaced by the organization/access vertical slice.
 
 Start with:
 
@@ -87,6 +93,7 @@ internal/database/           PostgreSQL pool construction
 internal/httpapi/            HTTP adapter and generated contract
 internal/logging/            Structured logging policy
 internal/observability/      Metrics, tracing, diagnostics
+internal/platform/jobqueue/ Durable job contract shared by workers and adapters
 internal/user/               Transitional template vertical slice
 migrations/                  Versioned Goose migrations
 pkg/requestid/               Reusable request-ID primitives
@@ -122,4 +129,3 @@ by each command. The local PostgreSQL database and service identity are named
 
 No license has been selected. Choose and add the correct project license before
 publishing the repository.
-

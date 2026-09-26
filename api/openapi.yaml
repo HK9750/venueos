@@ -13,6 +13,9 @@ paths:
       responses:
         "204":
           description: The process is alive.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestID"
   /readyz:
     get:
       operationId: Readyz
@@ -20,6 +23,9 @@ paths:
       responses:
         "204":
           description: The service can receive traffic.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestID"
         "503":
           $ref: "#/components/responses/Problem"
   /v1/users:
@@ -45,6 +51,9 @@ paths:
       responses:
         "200":
           description: A page of users.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestID"
           content:
             application/json:
               schema:
@@ -66,6 +75,8 @@ paths:
         "201":
           description: User created.
           headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestID"
             Location:
               schema:
                 type: string
@@ -81,6 +92,8 @@ paths:
         "415":
           $ref: "#/components/responses/Problem"
         "413":
+          $ref: "#/components/responses/Problem"
+        "422":
           $ref: "#/components/responses/Problem"
         "500":
           $ref: "#/components/responses/Problem"
@@ -98,6 +111,9 @@ paths:
       responses:
         "200":
           description: The requested user.
+          headers:
+            X-Request-ID:
+              $ref: "#/components/headers/RequestID"
           content:
             application/json:
               schema:
@@ -109,13 +125,22 @@ paths:
         "500":
           $ref: "#/components/responses/Problem"
 components:
+  headers:
+    RequestID:
+      description: Opaque request correlation identifier.
+      required: true
+      schema:
+        $ref: "#/components/schemas/RequestIdentifier"
   responses:
     Problem:
-      description: An RFC 9457 problem response.
+      description: A stable VenueOS API error response.
+      headers:
+        X-Request-ID:
+          $ref: "#/components/headers/RequestID"
       content:
-        application/problem+json:
+        application/json:
           schema:
-            $ref: "#/components/schemas/Problem"
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
     CreateUser:
       type: object
@@ -133,7 +158,7 @@ components:
     User:
       type: object
       additionalProperties: false
-      required: [id, email, name, createdAt, updatedAt]
+      required: [id, email, name, created_at, updated_at]
       properties:
         id:
           type: string
@@ -143,10 +168,10 @@ components:
           format: email
         name:
           type: string
-        createdAt:
+        created_at:
           type: string
           format: date-time
-        updatedAt:
+        updated_at:
           type: string
           format: date-time
     UserList:
@@ -162,26 +187,58 @@ components:
           type: integer
         offset:
           type: integer
-    Problem:
+    ErrorResponse:
       type: object
       additionalProperties: false
-      required: [type, title, status]
+      required: [error]
+      example:
+        error:
+          code: validation_failed
+          message: The request is invalid.
+          request_id: req_01JEXAMPLE
+          details:
+            - field: currency
+              code: invalid
+              message: Use a supported currency.
       properties:
-        type:
+        error:
+          $ref: "#/components/schemas/APIError"
+    APIError:
+      type: object
+      additionalProperties: false
+      required: [code, message, request_id]
+      properties:
+        code:
           type: string
-          format: uri
-        title:
+          pattern: "^[a-z][a-z0-9_]*$"
+          maxLength: 64
+        message:
           type: string
-        status:
-          type: integer
-          minimum: 400
-          maximum: 599
-        detail:
+          maxLength: 500
+        request_id:
+          $ref: "#/components/schemas/RequestIdentifier"
+        details:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+    ErrorDetail:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        field:
           type: string
-        instance:
+          maxLength: 128
+        code:
           type: string
-          format: uri-reference
-        errors:
-          type: object
-          additionalProperties:
-            type: string
+          pattern: "^[a-z][a-z0-9_]*$"
+          maxLength: 64
+        message:
+          type: string
+          maxLength: 500
+    RequestIdentifier:
+      type: string
+      minLength: 1
+      maxLength: 128
+      pattern: "^[A-Za-z0-9._-]+$"

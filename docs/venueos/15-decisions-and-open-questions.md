@@ -63,6 +63,12 @@ security, finance, legal, or operations owner before the dependent milestone.
 | Q-T11 | Supported client/version/deprecation policy? | Product/engineering, before public beta |
 | Q-T12 | Fraud/risk/dispute/chargeback ownership and provider features? | Finance/support/security, before paid pilot |
 
+## ADR Index
+
+| ADR | Status | Decision |
+|---|---|---|
+| [ADR-0001](adr/0001-modular-monolith-and-domain-boundaries.md) | accepted | Use a modular monolith with explicit domain ownership and separate API, worker, and migrate processes |
+
 ## ADR Process
 
 Create `docs/venueos/adr/NNNN-short-title.md` with:
@@ -90,4 +96,3 @@ If an open answer changes schema, security boundary, money movement, legal promi
 or operational architecture, stop at interface/prototype work until the authorized
 owner decides. Record temporary assumptions explicitly in the issue/ADR and do not
 let an experimental default silently become production policy.
-

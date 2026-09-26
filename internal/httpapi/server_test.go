@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -43,6 +44,18 @@ func (panicUsers) List(context.Context, int32, int32) ([]user.User, error) {
 	panic("boom")
 }
 
+type invalidUsers struct{ stubUsers }
+
+func (invalidUsers) Create(context.Context, user.CreateInput) (user.User, error) {
+	return user.User{}, user.ErrInvalid
+}
+
+type failingUsers struct{ stubUsers }
+
+func (failingUsers) List(context.Context, int32, int32) ([]user.User, error) {
+	return nil, errors.New("database password must not escape")
+}
+
 func TestCreateUser(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	server := NewServer(stubUsers{}, ready{}, logger)
@@ -65,7 +78,7 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-func TestGeneratedParameterErrorsUseProblemDetails(t *testing.T) {
+func TestGeneratedParameterErrorsUseStableEnvelope(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	server := NewServer(stubUsers{}, ready{}, logger)
 	handler := NewHandler(server, config.Telemetry{}, logger, observability.NewMetrics())
@@ -77,8 +90,18 @@ func TestGeneratedParameterErrorsUseProblemDetails(t *testing.T) {
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
 	}
-	if contentType := recorder.Header().Get("Content-Type"); contentType != "application/problem+json" {
+	if contentType := recorder.Header().Get("Content-Type"); contentType != "application/json" {
 		t.Fatalf("Content-Type = %q", contentType)
+	}
+	var response ErrorResponse
+	if err := json.NewDecoder(recorder.Body).Decode(&response); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if response.Error.Code != "invalid_request" {
+		t.Fatalf("error code = %q, want invalid_request", response.Error.Code)
+	}
+	if response.Error.RequestId == "" || response.Error.RequestId != recorder.Header().Get("X-Request-ID") {
+		t.Fatalf("request ID body/header mismatch: body=%q header=%q", response.Error.RequestId, recorder.Header().Get("X-Request-ID"))
 	}
 }
 
@@ -109,6 +132,45 @@ func TestCreateUserRejectsOversizedBody(t *testing.T) {
 
 	if recorder.Code != http.StatusRequestEntityTooLarge {
 		t.Fatalf("status = %d, want %d; body=%s", recorder.Code, http.StatusRequestEntityTooLarge, recorder.Body.String())
+	}
+}
+
+func TestCreateUserUsesValidationErrorCode(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	server := NewServer(invalidUsers{}, ready{}, logger)
+	handler := NewHandler(server, config.Telemetry{}, logger, observability.NewMetrics())
+	request := httptest.NewRequestWithContext(context.Background(), http.MethodPost, "/v1/users", strings.NewReader(`{"email":"ada@example.com","name":"Ada"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusUnprocessableEntity)
+	}
+	var response ErrorResponse
+	if err := json.NewDecoder(recorder.Body).Decode(&response); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if response.Error.Code != "validation_failed" {
+		t.Fatalf("error code = %q, want validation_failed", response.Error.Code)
+	}
+}
+
+func TestInternalErrorDoesNotExposeCause(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	server := NewServer(failingUsers{}, ready{}, logger)
+	handler := NewHandler(server, config.Telemetry{}, logger, observability.NewMetrics())
+	request := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/users", nil)
+	recorder := httptest.NewRecorder()
+
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusInternalServerError)
+	}
+	if strings.Contains(recorder.Body.String(), "database password") {
+		t.Fatalf("response exposed internal cause: %s", recorder.Body.String())
 	}
 }
 

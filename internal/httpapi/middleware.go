@@ -7,6 +7,7 @@ import (
 	"runtime/debug"
 	"time"
 
+	"github.com/HK9750/venueos/internal/platform/apperror"
 	"github.com/HK9750/venueos/pkg/requestid"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -52,7 +53,7 @@ func Recover(logger *slog.Logger) Middleware {
 						slog.Group("request", requestLogAttrs(r.Context())...),
 					)
 					if !writer.wroteHeader {
-						writeProblem(writer, r, http.StatusInternalServerError, "Internal server error", "an unexpected error occurred", nil)
+						writeAPIError(writer, r, http.StatusInternalServerError, apperror.CodeInternal, "An unexpected error occurred.", nil)
 					}
 				}
 			}()
