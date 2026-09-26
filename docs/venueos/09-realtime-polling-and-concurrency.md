@@ -11,7 +11,12 @@ authoritative snapshot -> ordered deltas -> detect gap -> fresh snapshot
 
 PostgreSQL owns inventory and a bounded replay log. Redis distributes committed
 events between API replicas. WebSockets provide low-latency delivery. Conditional
-HTTP polling is the universal fallback.
+HTTP polling is the universal fallback. The current inventory slice persists
+session-sequenced `availability.changed` rows atomically for hold create, release,
+and expiry, and exposes consistent PostgreSQL snapshot/replay repository reads.
+Tenant-scoped authenticated staff snapshot/replay routes are now available;
+public storefront routes remain pending until tenant-resolution and guest-policy
+decisions are closed.
 
 ## Availability Versions and Event Creation
 
@@ -27,6 +32,16 @@ changes visible availability:
 Consumers never see uncommitted changes. A relay publishes the event to a Redis
 channel keyed by environment/organization/session. The durable replay row permits
 recovery when Redis or a WebSocket replica loses a message.
+
+Expired replay rows are pruned by the recurring worker in bounded batches, so
+retention remains an operational limit rather than an unbounded table growth risk.
+
+The repository snapshot uses a repeatable-read transaction and returns the current
+session revision plus safe seat/pool counters. Replay reads use the same snapshot
+boundary, return events strictly after a caller-provided sequence, and fetch at
+most one extra row to calculate `has_more`. Public handlers still need to add
+tenant resolution, opaque cursor validation, retention-gap detection, and the
+documented response contract.
 
 ## Snapshot Endpoint
 
@@ -179,4 +194,3 @@ session/organization IDs as metric labels; put them in controlled logs/traces.
   delivery-lag budgets.
 - Race tests verify each concurrency-matrix outcome and run repeatedly under the Go
   race detector where applicable.
-

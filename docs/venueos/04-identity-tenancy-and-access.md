@@ -54,6 +54,10 @@ Rules:
 - Invitations are rate-limited and deduplicated by organization/email/status.
 - All invite, accept, role, revoke, and transfer operations emit audit records.
 
+Platform onboarding actions use the `platform` audit actor type and are bound to a
+verified platform principal; tenant-scoped actions use the actor types appropriate
+to the authenticated user, API key, device, or support session.
+
 ## Permissions
 
 Permissions are explicit strings, not inferred throughout handlers. Initial set:
@@ -98,6 +102,28 @@ Application context carries typed principal, organization ID, permissions, reque
 ID, and trace ID. Repository methods receiving tenant-owned data require an
 organization ID argument; unscoped `GetByID` methods are forbidden outside
 platform-admin code.
+
+The provider-neutral `internal/access` foundation now supplies validated principal
+types, the documented permission vocabulary, and a verified organization
+authorization context. Only authentication/membership adapters may construct that
+scope; route headers and bodies cannot grant it. The membership slice implements
+tenant-scoped role changes, revocation, optimistic versions, last-owner protection,
+and a fixed permission matrix. Invitation tokens are generated with 256 bits of
+entropy, stored only as SHA-256 hashes, accepted once for the matching user email,
+and atomically create the membership plus audit/outbox records. OIDC verification,
+membership loading, role mapping, and request/trace correlation remain adapter
+concerns until the provider decision is recorded.
+
+API-key issuance is implemented as a tenant-scoped service/repository slice. It
+requires `integration.manage`, permits only a subset of the creator's permissions,
+returns the high-entropy token once, stores only its SHA-256 verifier, supports
+expiry, immediate version-checked revocation, and immediate rotation without an
+overlap window. It records safe audit/outbox metadata without the secret.
+Prefix-based authentication reconstructs an API-key
+principal and organization authorization after constant-time verifier comparison;
+the provider-neutral OIDC verifier port and deterministic development/test fake are
+available, while production token verification and HTTP credential middleware
+remain provider-dependent.
 
 PostgreSQL row-level security is recommended as defense in depth:
 
@@ -157,9 +183,10 @@ ownership unless a narrower emergency procedure explicitly permits it.
 - Cross-tenant ID substitution for every tenant resource type.
 - Membership revoke/demotion cache invalidation.
 - Invitation replay, expiry, wrong email, and concurrency.
-- API key show-once, hash verification, rotation overlap, expiry, and revocation.
+- API key show-once, hash verification, expiry, versioned revocation, and
+  immediate rotation are implemented; overlap windows remain an explicit policy
+  option rather than an implicit default.
 - OIDC wrong issuer/audience/algorithm/key, expiry, and JWKS rotation.
 - Device revoked/offline-expired behavior.
 - RLS pooled-connection leakage test when RLS is enabled.
 - Support impersonation restriction and complete audit evidence.
-

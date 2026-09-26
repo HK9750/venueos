@@ -9,13 +9,34 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/HK9750/venueos/internal/channel"
+	channelpostgres "github.com/HK9750/venueos/internal/channel/postgres"
 	"github.com/HK9750/venueos/internal/config"
 	"github.com/HK9750/venueos/internal/database"
+	"github.com/HK9750/venueos/internal/event"
+	eventpostgres "github.com/HK9750/venueos/internal/event/postgres"
 	"github.com/HK9750/venueos/internal/httpapi"
+	"github.com/HK9750/venueos/internal/inventory"
+	inventorypostgres "github.com/HK9750/venueos/internal/inventory/postgres"
+	"github.com/HK9750/venueos/internal/invitation"
+	invitationpostgres "github.com/HK9750/venueos/internal/invitation/postgres"
 	"github.com/HK9750/venueos/internal/logging"
+	"github.com/HK9750/venueos/internal/membership"
+	membershippostgres "github.com/HK9750/venueos/internal/membership/postgres"
 	"github.com/HK9750/venueos/internal/observability"
+	"github.com/HK9750/venueos/internal/organization"
+	organizationpostgres "github.com/HK9750/venueos/internal/organization/postgres"
+	"github.com/HK9750/venueos/internal/platform/clock"
+	"github.com/HK9750/venueos/internal/pricing"
+	pricingpostgres "github.com/HK9750/venueos/internal/pricing/postgres"
+	"github.com/HK9750/venueos/internal/publication"
+	publicationpostgres "github.com/HK9750/venueos/internal/publication/postgres"
+	"github.com/HK9750/venueos/internal/session"
+	sessionpostgres "github.com/HK9750/venueos/internal/session/postgres"
 	"github.com/HK9750/venueos/internal/user"
 	userpostgres "github.com/HK9750/venueos/internal/user/postgres"
+	"github.com/HK9750/venueos/internal/venue"
+	venuepostgres "github.com/HK9750/venueos/internal/venue/postgres"
 )
 
 var (
@@ -64,7 +85,42 @@ func run() error {
 
 	repository := userpostgres.New(pool)
 	service := user.NewService(repository)
-	server := httpapi.NewServer(service, pool, logger)
+	transactions, err := database.NewTransactionRunner(pool, database.DefaultRetryPolicy())
+	if err != nil {
+		return err
+	}
+	organizationRepository := organizationpostgres.New(pool, transactions)
+	organizationService := organization.NewService(organizationRepository, clock.System{})
+	membershipRepository := membershippostgres.New(pool, transactions)
+	membershipService := membership.NewService(membershipRepository, clock.System{})
+	invitationRepository := invitationpostgres.New(pool, transactions)
+	invitationService := invitation.NewService(invitationRepository, clock.System{})
+	venueRepository := venuepostgres.New(pool, transactions)
+	venueService := venue.NewService(venueRepository, clock.System{})
+	eventRepository := eventpostgres.New(pool, transactions)
+	eventService := event.NewService(eventRepository, clock.System{})
+	sessionRepository := sessionpostgres.New(pool, transactions)
+	sessionService := session.NewService(sessionRepository, clock.System{})
+	inventoryRepository := inventorypostgres.New(pool, transactions)
+	inventoryService := inventory.NewService(inventoryRepository, clock.System{})
+	pricingRepository := pricingpostgres.New(pool, transactions)
+	pricingService := pricing.NewService(pricingRepository, clock.System{})
+	channelRepository := channelpostgres.New(pool, transactions)
+	channelService := channel.NewService(channelRepository, clock.System{})
+	publicationRepository := publicationpostgres.New(pool, transactions)
+	publicationService := publication.NewService(publicationRepository, clock.System{})
+	eventService.WithPublicationValidator(publicationService)
+	server := httpapi.NewServer(service, pool, logger).
+		WithOrganizations(organizationService).
+		WithMemberships(membershipService).
+		WithInvitations(invitationService).
+		WithEvents(eventService).
+		WithSessions(sessionService).
+		WithInventory(inventoryService).
+		WithPricing(pricingService).
+		WithSalesChannels(channelService).
+		WithPublication(publicationService).
+		WithVenues(venueService)
 	metrics := observability.NewMetrics()
 	handler := httpapi.NewHandler(server, cfg.Telemetry, logger, metrics)
 	listeners := []httpapi.Listener{{Name: "api", Config: cfg.HTTP, Handler: handler}}

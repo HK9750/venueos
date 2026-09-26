@@ -22,6 +22,118 @@ INSERT INTO outbox_events (
     'pending', $11, $12, $12
 );
 
+-- name: ClaimOutboxEvents :many
+WITH candidates AS (
+    SELECT source.id
+    FROM outbox_events AS source
+    WHERE (
+        (source.state = 'pending' AND source.available_at <= sqlc.arg(now))
+        OR (source.state = 'leased' AND source.lease_expires_at <= sqlc.arg(now))
+    )
+      AND source.attempt_count < sqlc.arg(max_attempts)
+    ORDER BY source.available_at ASC, source.occurred_at ASC, source.id ASC
+    LIMIT sqlc.arg(batch_size)
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE outbox_events AS event
+SET state = 'leased',
+    attempt_count = event.attempt_count + 1,
+    lease_owner = sqlc.arg(lease_owner),
+    lease_expires_at = sqlc.arg(now) + make_interval(secs => sqlc.arg(lease_seconds)),
+    published_at = NULL,
+    dead_lettered_at = NULL,
+    last_error_code = CASE WHEN event.state = 'leased' THEN 'lease_expired' ELSE event.last_error_code END,
+    last_error_message = CASE WHEN event.state = 'leased' THEN 'Previous relay lease expired.' ELSE event.last_error_message END
+FROM candidates
+WHERE event.id = candidates.id
+RETURNING event.*;
+
+-- name: MarkOutboxPublished :execrows
+UPDATE outbox_events
+SET state = 'published',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    published_at = sqlc.arg(published_at),
+    last_error_code = NULL,
+    last_error_message = NULL
+WHERE id = sqlc.arg(id)
+  AND state = 'leased'
+  AND lease_owner = sqlc.arg(lease_owner);
+
+-- name: RetryOutboxEvent :execrows
+UPDATE outbox_events
+SET state = 'pending',
+    available_at = sqlc.arg(available_at),
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    last_error_code = sqlc.arg(error_code),
+    last_error_message = sqlc.arg(error_message)
+WHERE id = sqlc.arg(id)
+  AND state = 'leased'
+  AND lease_owner = sqlc.arg(lease_owner);
+
+-- name: DeadLetterOutboxEvent :execrows
+UPDATE outbox_events
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    dead_lettered_at = sqlc.arg(dead_lettered_at),
+    last_error_code = sqlc.arg(error_code),
+    last_error_message = sqlc.arg(error_message)
+WHERE id = sqlc.arg(id)
+  AND state = 'leased'
+  AND lease_owner = sqlc.arg(lease_owner);
+
+-- name: DeadLetterExhaustedOutboxLeases :execrows
+UPDATE outbox_events
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    dead_lettered_at = sqlc.arg(now),
+    last_error_code = 'lease_expired',
+    last_error_message = 'Outbox relay lease expired after the final attempt.'
+WHERE state = 'leased'
+  AND lease_expires_at <= sqlc.arg(now)
+  AND attempt_count >= sqlc.arg(max_attempts);
+
+-- name: InsertRealtimeEvent :exec
+INSERT INTO realtime_events (
+    id, organization_id, session_id, topic, sequence, event_type,
+    schema_version, payload, occurred_at, retention_expires_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+
+-- name: DeleteExpiredRealtimeEvents :execrows
+WITH expired AS (
+    SELECT organization_id, id
+    FROM realtime_events
+    WHERE retention_expires_at <= now()
+    ORDER BY retention_expires_at ASC, id ASC
+    LIMIT sqlc.arg(batch_limit)
+    FOR UPDATE SKIP LOCKED
+)
+DELETE FROM realtime_events AS events
+USING expired
+WHERE events.organization_id = expired.organization_id
+  AND events.id = expired.id;
+
+-- name: DeleteExpiredIdempotencyRecords :execrows
+WITH expired AS (
+    SELECT source.id
+    FROM idempotency_records AS source
+    WHERE source.expires_at <= sqlc.arg(now)
+      AND (
+          source.state <> 'processing'
+          OR source.locked_until IS NULL
+          OR source.locked_until <= sqlc.arg(now)
+      )
+    ORDER BY source.expires_at ASC, source.id ASC
+    LIMIT sqlc.arg(batch_limit)
+    FOR UPDATE SKIP LOCKED
+)
+DELETE FROM idempotency_records AS records
+USING expired
+WHERE records.id = expired.id;
+
 -- name: InsertIdempotencyRecord :execrows
 INSERT INTO idempotency_records (
     id, organization_id, principal_type, principal_id, operation,
@@ -73,6 +185,42 @@ INSERT INTO jobs (
 )
 ON CONFLICT (organization_id, job_type, dedupe_key)
 DO NOTHING;
+
+-- name: EnsureJobSchedule :exec
+INSERT INTO job_schedules (
+    schedule_key, organization_id, job_type, schema_version, priority, payload,
+    interval_seconds, next_run_at, max_attempts, enabled, created_at, updated_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, $10, $10)
+ON CONFLICT (schedule_key)
+DO UPDATE SET
+    organization_id = EXCLUDED.organization_id,
+    job_type = EXCLUDED.job_type,
+    schema_version = EXCLUDED.schema_version,
+    priority = EXCLUDED.priority,
+    payload = EXCLUDED.payload,
+    interval_seconds = EXCLUDED.interval_seconds,
+    max_attempts = EXCLUDED.max_attempts,
+    enabled = true,
+    updated_at = EXCLUDED.updated_at;
+
+-- name: ClaimDueJobSchedule :one
+WITH due AS (
+    SELECT schedule_key, next_run_at AS due_at
+    FROM job_schedules
+    WHERE enabled = true AND next_run_at <= sqlc.arg(now)
+    ORDER BY next_run_at ASC, schedule_key ASC
+    LIMIT 1
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE job_schedules AS schedule
+SET next_run_at = GREATEST(
+        schedule.next_run_at + make_interval(secs => schedule.interval_seconds),
+        sqlc.arg(now) + make_interval(secs => schedule.interval_seconds)
+    ),
+    updated_at = sqlc.arg(now)
+FROM due
+WHERE schedule.schedule_key = due.schedule_key
+RETURNING schedule.*, due.due_at;
 
 -- name: ClaimJobs :many
 WITH candidates AS (

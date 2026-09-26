@@ -35,6 +35,8 @@ coverage.*
 /.cache/
 /.golangci-cache/
 /.sqlc-cache/
+.codex-buildup
+.codex-buildtmp/
 
 # Editors
 .idea/

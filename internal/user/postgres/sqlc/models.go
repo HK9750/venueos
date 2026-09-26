@@ -12,6 +12,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ApiKey struct {
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	Prefix         string             `json:"prefix"`
+	Name           string             `json:"name"`
+	SecretHash     []byte             `json:"secret_hash"`
+	Scopes         []string           `json:"scopes"`
+	CreatedByType  string             `json:"created_by_type"`
+	CreatedByID    string             `json:"created_by_id"`
+	ExpiresAt      pgtype.Timestamptz `json:"expires_at"`
+	RevokedAt      pgtype.Timestamptz `json:"revoked_at"`
+	LastUsedAt     pgtype.Timestamptz `json:"last_used_at"`
+	Version        int64              `json:"version"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+}
+
 type AuditEntry struct {
 	ID                 uuid.UUID   `json:"id"`
 	OrganizationID     uuid.UUID   `json:"organization_id"`
@@ -33,9 +50,90 @@ type AuditEntry struct {
 	OccurredAt         time.Time   `json:"occurred_at"`
 }
 
+type Event struct {
+	ID              uuid.UUID `json:"id"`
+	OrganizationID  uuid.UUID `json:"organization_id"`
+	Slug            string    `json:"slug"`
+	Status          string    `json:"status"`
+	CurrentRevision int64     `json:"current_revision"`
+	Version         int64     `json:"version"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+type EventRevision struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	EventID          uuid.UUID          `json:"event_id"`
+	Revision         int64              `json:"revision"`
+	Status           string             `json:"status"`
+	Title            string             `json:"title"`
+	ShortDescription string             `json:"short_description"`
+	LongDescription  string             `json:"long_description"`
+	Checksum         []byte             `json:"checksum"`
+	Version          int64              `json:"version"`
+	PublishedAt      pgtype.Timestamptz `json:"published_at"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+}
+
+type GaPoolTemplate struct {
+	ID               uuid.UUID `json:"id"`
+	OrganizationID   uuid.UUID `json:"organization_id"`
+	SpaceID          uuid.UUID `json:"space_id"`
+	Slug             string    `json:"slug"`
+	DisplayName      string    `json:"display_name"`
+	Status           string    `json:"status"`
+	PhysicalCapacity int64     `json:"physical_capacity"`
+	SellableCapacity int64     `json:"sellable_capacity"`
+	Version          int64     `json:"version"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+type Gate struct {
+	ID             uuid.UUID   `json:"id"`
+	OrganizationID uuid.UUID   `json:"organization_id"`
+	VenueID        uuid.UUID   `json:"venue_id"`
+	SpaceID        pgtype.UUID `json:"space_id"`
+	Code           string      `json:"code"`
+	DisplayName    string      `json:"display_name"`
+	Status         string      `json:"status"`
+	Version        int64       `json:"version"`
+	CreatedAt      time.Time   `json:"created_at"`
+	UpdatedAt      time.Time   `json:"updated_at"`
+}
+
+type Hold struct {
+	ID             uuid.UUID   `json:"id"`
+	OrganizationID uuid.UUID   `json:"organization_id"`
+	SessionID      uuid.UUID   `json:"session_id"`
+	OwnerTokenHash []byte      `json:"owner_token_hash"`
+	OwnerUserID    pgtype.UUID `json:"owner_user_id"`
+	ChannelID      pgtype.UUID `json:"channel_id"`
+	Currency       string      `json:"currency"`
+	State          string      `json:"state"`
+	ExpiresAt      time.Time   `json:"expires_at"`
+	RenewalCount   int32       `json:"renewal_count"`
+	Version        int64       `json:"version"`
+	CreatedAt      time.Time   `json:"created_at"`
+	UpdatedAt      time.Time   `json:"updated_at"`
+}
+
+type HoldItem struct {
+	ID             uuid.UUID   `json:"id"`
+	OrganizationID uuid.UUID   `json:"organization_id"`
+	HoldID         uuid.UUID   `json:"hold_id"`
+	SessionID      uuid.UUID   `json:"session_id"`
+	PoolID         pgtype.UUID `json:"pool_id"`
+	Quantity       int64       `json:"quantity"`
+	CreatedAt      time.Time   `json:"created_at"`
+	SeatID         pgtype.UUID `json:"seat_id"`
+}
+
 type IdempotencyRecord struct {
 	ID                 uuid.UUID          `json:"id"`
-	OrganizationID     uuid.UUID          `json:"organization_id"`
+	OrganizationID     pgtype.UUID        `json:"organization_id"`
 	PrincipalType      string             `json:"principal_type"`
 	PrincipalID        string             `json:"principal_id"`
 	Operation          string             `json:"operation"`
@@ -52,6 +150,15 @@ type IdempotencyRecord struct {
 	UpdatedAt          time.Time          `json:"updated_at"`
 }
 
+type IdentityLink struct {
+	ID          uuid.UUID          `json:"id"`
+	UserID      uuid.UUID          `json:"user_id"`
+	Issuer      string             `json:"issuer"`
+	Subject     string             `json:"subject"`
+	CreatedAt   time.Time          `json:"created_at"`
+	LastLoginAt pgtype.Timestamptz `json:"last_login_at"`
+}
+
 type InboxMessage struct {
 	ID               uuid.UUID          `json:"id"`
 	OrganizationID   pgtype.UUID        `json:"organization_id"`
@@ -66,6 +173,24 @@ type InboxMessage struct {
 	ReceivedAt       time.Time          `json:"received_at"`
 	ProcessedAt      pgtype.Timestamptz `json:"processed_at"`
 	UpdatedAt        time.Time          `json:"updated_at"`
+}
+
+type Invitation struct {
+	ID              uuid.UUID          `json:"id"`
+	OrganizationID  uuid.UUID          `json:"organization_id"`
+	NormalizedEmail string             `json:"normalized_email"`
+	Role            string             `json:"role"`
+	TokenHash       []byte             `json:"token_hash"`
+	Status          string             `json:"status"`
+	ExpiresAt       time.Time          `json:"expires_at"`
+	CreatedByType   string             `json:"created_by_type"`
+	CreatedByID     pgtype.Text        `json:"created_by_id"`
+	MembershipID    pgtype.UUID        `json:"membership_id"`
+	AcceptedAt      pgtype.Timestamptz `json:"accepted_at"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+	Version         int64              `json:"version"`
+	CreatedAt       time.Time          `json:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at"`
 }
 
 type Job struct {
@@ -91,6 +216,34 @@ type Job struct {
 	UpdatedAt        time.Time          `json:"updated_at"`
 	StartedAt        pgtype.Timestamptz `json:"started_at"`
 	FinishedAt       pgtype.Timestamptz `json:"finished_at"`
+}
+
+type JobSchedule struct {
+	ScheduleKey     string      `json:"schedule_key"`
+	OrganizationID  pgtype.UUID `json:"organization_id"`
+	JobType         string      `json:"job_type"`
+	SchemaVersion   int32       `json:"schema_version"`
+	Priority        int16       `json:"priority"`
+	Payload         []byte      `json:"payload"`
+	IntervalSeconds int32       `json:"interval_seconds"`
+	NextRunAt       time.Time   `json:"next_run_at"`
+	MaxAttempts     int32       `json:"max_attempts"`
+	Enabled         bool        `json:"enabled"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+}
+
+type Membership struct {
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	UserID         uuid.UUID          `json:"user_id"`
+	Role           string             `json:"role"`
+	Status         string             `json:"status"`
+	VenueScope     []uuid.UUID        `json:"venue_scope"`
+	Version        int64              `json:"version"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	RevokedAt      pgtype.Timestamptz `json:"revoked_at"`
 }
 
 type Organization struct {
@@ -130,10 +283,172 @@ type OutboxEvent struct {
 	CreatedAt        time.Time          `json:"created_at"`
 }
 
+type PriceTier struct {
+	ID              uuid.UUID          `json:"id"`
+	OrganizationID  uuid.UUID          `json:"organization_id"`
+	SessionID       uuid.UUID          `json:"session_id"`
+	Slug            string             `json:"slug"`
+	DisplayName     string             `json:"display_name"`
+	Currency        string             `json:"currency"`
+	AmountMinor     int64              `json:"amount_minor"`
+	MinimumQuantity int32              `json:"minimum_quantity"`
+	MaximumQuantity int32              `json:"maximum_quantity"`
+	SalesStartAt    pgtype.Timestamptz `json:"sales_start_at"`
+	SalesEndAt      pgtype.Timestamptz `json:"sales_end_at"`
+	Status          string             `json:"status"`
+	Version         int64              `json:"version"`
+	CreatedAt       time.Time          `json:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+}
+
+type RealtimeEvent struct {
+	ID                 uuid.UUID `json:"id"`
+	OrganizationID     uuid.UUID `json:"organization_id"`
+	SessionID          uuid.UUID `json:"session_id"`
+	Topic              string    `json:"topic"`
+	Sequence           int64     `json:"sequence"`
+	EventType          string    `json:"event_type"`
+	SchemaVersion      int32     `json:"schema_version"`
+	Payload            []byte    `json:"payload"`
+	OccurredAt         time.Time `json:"occurred_at"`
+	RetentionExpiresAt time.Time `json:"retention_expires_at"`
+}
+
+type SalesChannel struct {
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	ChannelKey     string    `json:"channel_key"`
+	DisplayName    string    `json:"display_name"`
+	ChannelType    string    `json:"channel_type"`
+	Configuration  []byte    `json:"configuration"`
+	Status         string    `json:"status"`
+	Version        int64     `json:"version"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type SeatMapVersion struct {
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	SpaceID        uuid.UUID          `json:"space_id"`
+	Name           string             `json:"name"`
+	Status         string             `json:"status"`
+	Revision       int64              `json:"revision"`
+	Checksum       []byte             `json:"checksum"`
+	Content        []byte             `json:"content"`
+	SeatCount      int32              `json:"seat_count"`
+	SellableCount  int32              `json:"sellable_count"`
+	Version        int64              `json:"version"`
+	PublishedAt    pgtype.Timestamptz `json:"published_at"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+}
+
+type Session struct {
+	ID                uuid.UUID          `json:"id"`
+	OrganizationID    uuid.UUID          `json:"organization_id"`
+	EventID           uuid.UUID          `json:"event_id"`
+	EventRevision     int64              `json:"event_revision"`
+	VenueID           uuid.UUID          `json:"venue_id"`
+	SpaceID           uuid.UUID          `json:"space_id"`
+	SeatMapVersionID  pgtype.UUID        `json:"seat_map_version_id"`
+	InventoryMode     string             `json:"inventory_mode"`
+	DoorsAt           pgtype.Timestamptz `json:"doors_at"`
+	StartsAt          time.Time          `json:"starts_at"`
+	EndsAt            time.Time          `json:"ends_at"`
+	SalesStartAt      pgtype.Timestamptz `json:"sales_start_at"`
+	SalesEndAt        pgtype.Timestamptz `json:"sales_end_at"`
+	Timezone          string             `json:"timezone"`
+	Status            string             `json:"status"`
+	Version           int64              `json:"version"`
+	CreatedAt         time.Time          `json:"created_at"`
+	UpdatedAt         time.Time          `json:"updated_at"`
+	InventoryRevision int64              `json:"inventory_revision"`
+}
+
+type SessionChannelAllocation struct {
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	SessionID      uuid.UUID `json:"session_id"`
+	ChannelID      uuid.UUID `json:"channel_id"`
+	ScopeKey       string    `json:"scope_key"`
+	AllocationMode string    `json:"allocation_mode"`
+	Quantity       int64     `json:"quantity"`
+	Version        int64     `json:"version"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type SessionGaPool struct {
+	ID               uuid.UUID `json:"id"`
+	OrganizationID   uuid.UUID `json:"organization_id"`
+	SessionID        uuid.UUID `json:"session_id"`
+	SourcePoolID     uuid.UUID `json:"source_pool_id"`
+	Slug             string    `json:"slug"`
+	DisplayName      string    `json:"display_name"`
+	PhysicalCapacity int64     `json:"physical_capacity"`
+	SellableCapacity int64     `json:"sellable_capacity"`
+	HeldQty          int64     `json:"held_qty"`
+	SoldQty          int64     `json:"sold_qty"`
+	KilledQty        int64     `json:"killed_qty"`
+	CompedQty        int64     `json:"comped_qty"`
+	Version          int64     `json:"version"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+type SessionSeat struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	SessionID        uuid.UUID          `json:"session_id"`
+	SeatMapVersionID uuid.UUID          `json:"seat_map_version_id"`
+	SectionKey       string             `json:"section_key"`
+	RowKey           string             `json:"row_key"`
+	SeatKey          string             `json:"seat_key"`
+	Label            string             `json:"label"`
+	Category         string             `json:"category"`
+	Sellable         bool               `json:"sellable"`
+	Wheelchair       bool               `json:"wheelchair"`
+	CompanionTo      pgtype.Text        `json:"companion_to"`
+	State            string             `json:"state"`
+	HoldID           pgtype.UUID        `json:"hold_id"`
+	OrderID          pgtype.UUID        `json:"order_id"`
+	HoldExpiresAt    pgtype.Timestamptz `json:"hold_expires_at"`
+	Version          int64              `json:"version"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+}
+
+type Space struct {
+	ID               uuid.UUID `json:"id"`
+	OrganizationID   uuid.UUID `json:"organization_id"`
+	VenueID          uuid.UUID `json:"venue_id"`
+	Slug             string    `json:"slug"`
+	DisplayName      string    `json:"display_name"`
+	Status           string    `json:"status"`
+	InventoryMode    string    `json:"inventory_mode"`
+	PhysicalCapacity int64     `json:"physical_capacity"`
+	Version          int64     `json:"version"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type Venue struct {
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Slug           string    `json:"slug"`
+	DisplayName    string    `json:"display_name"`
+	Status         string    `json:"status"`
+	Timezone       string    `json:"timezone"`
+	Version        int64     `json:"version"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }

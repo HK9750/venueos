@@ -20,10 +20,10 @@ contracts, migrations, authorization, observability, recovery, tests, and docs.
 | Area | Status | Current state | Next action |
 |---|---|---|---|
 | API process | foundation | `net/http`, middleware, health/readiness, metrics, tracing, and stable VenueOS error envelope | Introduce `/v1` auth and tenant context |
-| Worker process | implemented | PostgreSQL job claim/lease/retry/dead-letter lifecycle, bounded handlers, tracing and metrics | Register the first domain handler and add outbox relay |
-| Migration process | foundation | Embedded users plus organization/audit/outbox/idempotency/inbox/job migrations with rollback tests | Add membership schemas in the organization slice |
-| PostgreSQL | foundation | pgx pool, readiness, bounded transaction retry, and atomic platform record writes | Add tenant-scoped domain repositories and pool metrics |
-| OpenAPI | foundation | Common error contract plus generated example user API | Add organization slice, then retire example user contract deliberately |
+| Worker process | implemented | PostgreSQL job claim/lease/retry/dead-letter lifecycle, bounded handlers, tracing and metrics, plus durable outbox relay mechanics | Wire domain event publishers and consumers through the relay |
+| Migration process | foundation | Embedded users plus organization/audit/outbox/idempotency/inbox/job/identity/membership/invitation/venue/seat-map/event/session/pricing/channel migrations with rollback tests | Add catalog publication schemas |
+| PostgreSQL | foundation | pgx pool, readiness, bounded transaction retry, atomic platform records, and tenant-scoped organization/access/venue repositories | Add pool metrics and catalog repositories |
+| OpenAPI | foundation | Common error contract plus generated user, organization/access, and venue/space operations | Retire example user contract deliberately |
 | SQLC | foundation | Separate generated user and platform query packages | Split additional query packages by owning VenueOS domain as domains arrive |
 | Observability | foundation | structured logging, Prometheus/OpenTelemetry, and bounded worker job/queue metrics | Add stable API error/domain metrics and broader redaction tests |
 | Platform primitives | implemented | UUIDv7 IDs, checked minor-unit money, UTC clocks, stable error codes, bounded validation | Adopt in the first organization vertical slice |
@@ -65,35 +65,42 @@ Status: `in_progress`.
 2. [x] Introduce typed platform packages for identifiers, money, clock, validation,
    and stable application error codes.
 3. [x] Add transaction runner with isolation/deadlock classification and bounded retry.
-4. [ ] Add organization-aware principal/context types without selecting an OIDC vendor.
+4. [x] Add organization-aware principal/context types without selecting an OIDC vendor.
 5. [x] Add audit, idempotency, outbox, inbox and job table migrations.
 6. [x] Implement atomic audit/outbox/idempotency repository primitives.
 7. [x] Implement worker claim/lease/retry/dead-letter loop and operational metrics.
-8. [ ] Add generated-code cleanliness and migration-from-empty CI checks.
+8. [x] Add PostgreSQL outbox claim/lease/ack/retry/dead-letter relay mechanics with bounded safe failures.
+9. [ ] Add generated-code cleanliness and migration-from-empty CI checks.
 
 Gate: a synthetic tenant-scoped command can commit mutation + audit + outbox +
 idempotency result once, replay safely, and be consumed by two competing workers.
 
 ## Epic 2 — Organizations and Access
 
-Status: `not_started`; blocked on identity-provider choice only for live OIDC wiring.
+Status: `in_progress`; provider-neutral membership/invitation/API-key behavior is
+implemented, while live OIDC verification and the final provider choice remain.
 
-1. Add organizations, users, memberships and invitations schema.
-2. Implement organization lifecycle and settings domain rules.
-3. Implement invitation issue/accept/expire/revoke and last-owner invariant.
-4. Define fixed role-to-permission mapping and centralized authorization policies.
-5. Add OIDC verifier port plus development/test fake and production adapter choice.
-6. Add API key create/show-once/hash/rotate/revoke workflow.
-7. Add tenant-scoped repositories and decide RLS through ADR/proof.
-8. Add organization/membership OpenAPI operations and audit explorer foundation.
-9. Run the first complete cross-tenant substitution and permission-matrix suite.
+1. [x] Add organizations, users, memberships and invitations schema.
+2. [x] Implement organization lifecycle and settings domain rules.
+3. [x] Implement invitation issue/accept/expire/revoke and last-owner invariant.
+4. [x] Define fixed role-to-permission mapping and centralized authorization policies.
+5. [x] Add provider-neutral OIDC verifier port plus development/test fake; choose
+   and harden the production adapter after the identity-provider decision.
+6. [x] Add API key create/show-once/hash/expiry/revoke/rotate workflow; rotation
+   defaults to immediate revocation without overlap.
+7. [x] Add tenant-scoped repositories and defer RLS through the documented decision gate.
+8. [x] Add organization/membership/invitation OpenAPI operations and audit/outbox foundation.
+9. [x] Run the first permission-matrix and cross-tenant substitution suite for the implemented access commands.
 
 Gate: every organization command/query denies guessed cross-tenant resources and
 membership revocation takes effect without waiting for an unsafe cache lifetime.
 
 ## Epic 3 — Catalog Vertical Slice
 
-Status: `not_started`.
+Status: `in_progress`; venue, space, gate, general-admission pool, assigned
+seat-map version, event revision, session scheduling, and base price-tier
+foundations, session allocation wiring, publication validation, and fail-closed
+publish enforcement are implemented, while discovery remains.
 
 Implement in this internal order: venue → space/gates → seat-map versions/GA pool →
 event revisions → session scheduling → price tiers/channels → publication validation
@@ -101,17 +108,32 @@ event revisions → session scheduling → price tiers/channels → publication 
 time. Do not begin inventory materialization until published map and session
 revisions are immutable and referentially stable.
 
+1. [x] Venue and space create/get/list/update/archive/restore foundation with tenant
+   predicates, lifecycle/version checks, and atomic audit/outbox records.
+2. [x] Gates and entry-point metadata with optional tenant-scoped space assignment.
+3. [x] General-admission pool templates and immutable assigned-seat map versions.
+4. [x] Event identity, revision lifecycle, session scheduling, base price-tier
+   lifecycle, sales-channel identities, session allocation wiring, publication
+   validation reporting, and fail-closed publish enforcement; discovery remains.
+
 Gate: an administrator can publish one assigned-seat and one GA session, and a
 public client can retrieve their catalog without accessing draft or another tenant.
 
 ## Epic 4 — Booking Core
 
-Status: `not_started`; depends on Epic 3.
+Status: `in_progress`; GA pool and assigned-seat materialization, the GA inventory/
+hold foundation, reserved-seat hold/release transactions, bounded due-hold expiry,
+version-checked renewal and modification, atomic availability replay rows, and
+repeatable-read snapshot/replay repository reads are implemented, while public
+storefront/checkout routes and the remaining hold-policy contract remain.
 
 Implement session inventory, snapshot/revision, reserved-seat and GA holds, expiry,
 owner tokens, update/release/renew, and PostgreSQL realtime replay events. Polling
 ships here before WebSockets. The concurrency suite is an exit requirement, not a
 later performance task.
+
+Completed repository behaviors include hold release, one-renewal policy, and
+atomic version-checked hold modification with inventory rollback on conflict.
 
 Gate: repeated high-contention tests prove no oversell, no partial multi-seat hold,
 one terminal expiry/confirmation outcome, and correct operation without Redis.
@@ -158,10 +180,12 @@ Keep these as small reviewable changes, in order:
 4. [x] Organization/audit/outbox/idempotency initial migration.
 5. [x] Transaction runner and atomic platform repositories.
 6. [x] Durable job runner with lease, retry and dead-letter tests.
-7. [ ] Organization domain plus create/get OpenAPI vertical slice.
-8. [ ] Membership roles/authorization plus cross-tenant suite.
-9. [ ] Invitation lifecycle vertical slice.
-10. [ ] API keys and OIDC adapter contract.
+7. [x] Organization domain plus create/get OpenAPI vertical slice; live credential
+   verification remains blocked on the identity-provider decision.
+8. [x] Membership roles/authorization plus cross-tenant suite; live credential verification remains blocked on the identity-provider decision.
+9. [x] Invitation lifecycle vertical slice with hashed one-time tokens and atomic acceptance.
+10. [x] API key create/show-once/hash/expiry/revoke/rotate workflow and provider-neutral
+    OIDC adapter contract; production OIDC wiring remains blocked on the provider decision.
 
 Each change must satisfy the feature worksheet in `16-engineering-conventions.md`
 and the repository `AGENTS.md` definition of done.

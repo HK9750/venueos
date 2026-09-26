@@ -6,21 +6,32 @@ package sqlc
 
 import (
 	"context"
+	"time"
 )
 
 type Querier interface {
+	ClaimDueJobSchedule(ctx context.Context, now time.Time) (ClaimDueJobScheduleRow, error)
 	ClaimJobs(ctx context.Context, arg ClaimJobsParams) ([]Job, error)
+	ClaimOutboxEvents(ctx context.Context, arg ClaimOutboxEventsParams) ([]OutboxEvent, error)
 	CompleteIdempotencyRecord(ctx context.Context, arg CompleteIdempotencyRecordParams) (int64, error)
 	DeadLetterExhaustedLeases(ctx context.Context) (int64, error)
+	DeadLetterExhaustedOutboxLeases(ctx context.Context, arg DeadLetterExhaustedOutboxLeasesParams) (int64, error)
 	DeadLetterJob(ctx context.Context, arg DeadLetterJobParams) (int64, error)
+	DeadLetterOutboxEvent(ctx context.Context, arg DeadLetterOutboxEventParams) (int64, error)
+	DeleteExpiredIdempotencyRecords(ctx context.Context, arg DeleteExpiredIdempotencyRecordsParams) (int64, error)
+	DeleteExpiredRealtimeEvents(ctx context.Context, batchLimit int32) (int64, error)
 	EnqueueJob(ctx context.Context, arg EnqueueJobParams) (int64, error)
+	EnsureJobSchedule(ctx context.Context, arg EnsureJobScheduleParams) error
 	ExtendJobLease(ctx context.Context, arg ExtendJobLeaseParams) (int64, error)
 	GetIdempotencyRecordForUpdate(ctx context.Context, arg GetIdempotencyRecordForUpdateParams) (IdempotencyRecord, error)
 	GetJobQueueStats(ctx context.Context, jobTypes []string) ([]GetJobQueueStatsRow, error)
 	InsertAuditEntry(ctx context.Context, arg InsertAuditEntryParams) error
 	InsertIdempotencyRecord(ctx context.Context, arg InsertIdempotencyRecordParams) (int64, error)
 	InsertOutboxEvent(ctx context.Context, arg InsertOutboxEventParams) error
+	InsertRealtimeEvent(ctx context.Context, arg InsertRealtimeEventParams) error
+	MarkOutboxPublished(ctx context.Context, arg MarkOutboxPublishedParams) (int64, error)
 	RetryJob(ctx context.Context, arg RetryJobParams) (int64, error)
+	RetryOutboxEvent(ctx context.Context, arg RetryOutboxEventParams) (int64, error)
 	SucceedJob(ctx context.Context, arg SucceedJobParams) (int64, error)
 }
 

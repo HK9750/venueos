@@ -12,6 +12,16 @@ seat/pool state, applicable public price references, and next polling guidance.
 Public snapshots collapse another customer's `held` and non-sellable details to
 safe states; they never reveal hold/customer identity.
 
+Implementation status: PostgreSQL now has session inventory revisions, materialized
+GA pool counters created from active space templates, token-hash-scoped hold
+records/items, atomic GA hold/release, and a bounded due-hold expiry transaction that
+releases counters and emits audit/outbox records atomically. Assigned-seat sessions
+also materialize immutable seat metadata from their published map. The repository
+now exposes repeatable-read availability snapshots and bounded replay reads, and
+release commands enforce expiry using database time when the worker has not run yet.
+Authenticated tenant-scoped staff snapshot/replay routes are wired; public tenant
+resolution and storefront routes remain pending.
+
 ## Holds
 
 ### State Machine
@@ -32,6 +42,19 @@ Default policy is a 10-minute hold and at most one controlled renewal. Organizat
 settings may shorten it within platform limits. Effective expiry is always enforced
 at command time using database time; the expiration worker improves release latency
 but is not correctness authority.
+
+The repository now supports one owner- and version-checked renewal. Renewal uses
+database time, refuses expired or terminal holds, advances the hold version, and
+records audit/outbox entries atomically without changing inventory revision.
+
+The repository also supports owner- and version-checked modification. A
+modification atomically replaces the hold's GA quantity or reserved-seat set,
+preserves the original expiry, advances the hold version, increments the session
+inventory revision once, and records one `hold.modified` audit/outbox mutation plus
+one availability replay event. Requested reserved seats are locked in stable ID
+order; a failed replacement rolls back the release of the previous inventory.
+Public checkout/guest HTTP routes remain gated on the open identity, tenant
+resolution, hold-policy, and pricing decisions.
 
 ### Reserved-Seat Allocation
 
@@ -278,4 +301,3 @@ such.
 - Ticket issue/render/delivery retries do not duplicate credentials.
 - Concurrent scans admit once; offline conflicts preserve both attempts.
 - Promo final-redemption race and waitlist offer race respect limits/order.
-

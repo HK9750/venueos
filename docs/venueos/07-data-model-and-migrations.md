@@ -27,8 +27,10 @@
 | Table | Key columns and constraints |
 |---|---|
 | `organizations` | slug unique, status, defaults, settings version, timestamps |
-| `users` | issuer + subject unique, normalized email, profile, status, last login |
+| `users` | global profile and normalized email; provider identity keys live in `identity_links` |
+| `identity_links` | provider issuer + subject unique, user link, last-login timestamp |
 | `memberships` | organization + user unique, role, venue scope, status, version |
+| `api_keys` | globally unique prefix, verifier hash, tenant, scopes, expiry/revocation, last use, version |
 | `invitations` | organization + normalized email + active uniqueness, token hash, role, expiry, accepted/revoked metadata |
 | `api_keys` | key prefix unique, verifier hash, scopes, expiry/revocation/last-use; no plaintext |
 | `device_credentials` | organization, device, verifier/key version, status, expiry, last use |
@@ -44,8 +46,7 @@ secrets belong in a secret manager or envelope-encrypted column, not JSON settin
 | `venues` | organization + slug unique, timezone, address/profile, status, version |
 | `spaces` | organization + venue + slug unique, physical capacity, status, version |
 | `gates` | organization, venue/space, code unique within venue, status |
-| `seat_maps` | organization, space, stable map identity/name |
-| `seat_map_versions` | map + revision unique, status, checksum unique per map, normalized capacity, geometry metadata |
+| `seat_map_versions` | organization + space, draft/published revision status, canonical JSON content, checksum, normalized capacity, optimistic version |
 | `seat_sections` | map version, stable key, label, geometry/order |
 | `seat_rows` | map version/section, stable key/label/order |
 | `seats` | map version, row/section, stable key, display label, category, flags, coordinates; unique key and scoped label constraints |
@@ -141,15 +142,75 @@ hashes support deduplication without exposing plaintext.
 Migration `00002_create_platform_tenancy.sql` implements the initial
 `organizations`, `idempotency_records`, `outbox_events`, and `audit_entries`
 foundation. Application-supplied UUIDs allow the UUIDv7 generator to remain
-consistent; all three platform record tables require an organization foreign key;
-idempotency scope is unique; outbox state/lease fields are mutually constrained;
-and database triggers reject audit updates and deletes. Migration
+consistent. Outbox events and audit entries require an organization foreign key;
+platform onboarding idempotency rows intentionally use a null organization scope
+and are restricted to `principal_type = 'platform'`. Idempotency scope is unique;
+outbox state/lease fields are mutually constrained; and database triggers reject
+audit updates and deletes. Migration
 `00003_create_jobs_and_inbox.sql` adds provider inbox deduplication and the durable
 job state machine. Tenant jobs carry an organization foreign key; only explicitly
 platform-scoped jobs may leave it null. Job type plus dedupe key is unique within
 tenant scope (including the null platform scope), payloads and errors are bounded,
 and lease/terminal timestamps are constrained by state. RLS remains an explicit
 open decision and is not implicitly enabled by these migrations.
+Migration `00004_create_identity_and_memberships.sql` adds provider-neutral identity
+links and organization memberships with checked roles/statuses, venue scope bounds,
+optimistic versions, and the organization/user uniqueness invariant.
+`00005_create_invitations.sql` adds one-time invitation token hashes, active
+organization/email deduplication, expiry and terminal-state metadata, and the
+membership relation created on acceptance. Invitation expiry is processed in
+bounded worker batches and emits its own audit/outbox mutation.
+`00006_create_venue_catalog.sql` adds organization-scoped venues and spaces,
+composite tenant foreign keys, lifecycle/status checks, inventory-mode and capacity
+bounds, deterministic list indexes, and optimistic versions. Venue archive/restore
+is soft lifecycle state; future session dependency protection is added when sessions
+land in the catalog slice.
+`00007_create_gates.sql` adds tenant-linked venue entry points with optional
+space assignment, scoped code uniqueness, and the same bounded lifecycle/version
+rules.
+`00008_create_ga_pool_templates.sql` adds reusable general-admission pool
+capacities linked to a tenant space, enforcing sellable capacity not exceeding
+physical capacity.
+`00009_create_seat_map_versions.sql` adds canonical JSON seat-map drafts and
+immutable published revisions with checksums, bounded seat counts, tenant-linked
+space ownership, and optimistic versions.
+`00010_create_events_and_revisions.sql` adds organization-scoped event identities
+and draft/published content revisions with slug uniqueness, checksums, optimistic
+versions, and immutable published revision history.
+`00011_create_sessions.sql` adds tenant-linked scheduled occurrences with published
+event/map references, UTC time-window checks, inventory mode, lifecycle status, and
+deterministic scheduling indexes.
+`00012_create_price_tiers.sql` adds tenant-linked session price tiers with integer
+minor-unit amounts, one session currency, bounded quantity and sales-window rules,
+deterministic list indexes, and rollback coverage.
+`00013_create_sales_channels.sql` adds tenant-scoped public, box-office, partner,
+and private-link channel identities with bounded configuration JSON, lifecycle
+status checks, deterministic list indexes, and rollback coverage.
+`00014_create_session_channel_allocations.sql` adds tenant-linked session/channel
+allocation scopes with hard-reserved versus soft-policy modes, unique scope keys,
+positive quantities, and repository-level serialized capacity enforcement.
+`00015_create_inventory_and_holds.sql` adds session inventory revisions, materialized
+GA pool counters, token-hash-scoped holds, hold items, expiry indexes, and invariant
+checks for atomic hold/release operations. Session creation copies active GA pool
+templates into `session_ga_pools`; the inventory repository's bounded due-hold expiry
+transaction locks sessions in deterministic order, releases GA counters, advances
+the session revision, and records `hold.expired` audit/outbox mutations.
+`00016_create_session_seats.sql` adds tenant-safe materialized session seats and
+reserved-seat references on hold items. Assigned-seat session creation copies the
+published map's stable section/row/seat metadata into `session_seats`; allocation
+transitions are still handled by the booking command slice.
+`00017_create_realtime_events.sql` adds tenant-scoped, session-sequenced replay rows.
+Inventory hold create, release, and expiry mutations append an
+`availability.changed` event in the same transaction as the inventory revision.
+The inventory repository reads snapshots and bounded replay pages from a
+repeatable-read transaction; HTTP cursor and retention policy handling remains an
+API-layer concern.
+`00018_create_job_schedules.sql` adds bounded recurring schedule rows; the worker
+advances a due schedule and enqueues its durable job atomically.
+The worker also prunes expired `realtime_events` rows in bounded batches.
+`00019_create_api_keys.sql` adds tenant-scoped, show-once API-key credential
+metadata. Only the fixed-length SHA-256 verifier is stored; plaintext tokens are
+never persisted or included in audit/outbox payloads.
 
 Claim jobs/events with `FOR UPDATE SKIP LOCKED`, a lease expiry, bounded batch size,
 and commit before execution. A unique dedupe key prevents logically duplicate jobs.

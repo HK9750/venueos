@@ -11,8 +11,11 @@ import (
 	"time"
 
 	"github.com/HK9750/venueos/internal/database"
+	"github.com/HK9750/venueos/internal/organization"
+	organizationpostgres "github.com/HK9750/venueos/internal/organization/postgres"
 	"github.com/HK9750/venueos/internal/platform/identifier"
 	"github.com/HK9750/venueos/internal/platform/jobqueue"
+	"github.com/HK9750/venueos/internal/platform/money"
 	platformpostgres "github.com/HK9750/venueos/internal/platform/postgres"
 	"github.com/HK9750/venueos/migrations"
 	"github.com/jackc/pgx/v5"
@@ -212,6 +215,54 @@ func TestAtomicPlatformRecords(t *testing.T) {
 	require.Equal(t, int64(1), dead)
 	require.NoError(t, pool.QueryRow(ctx, `SELECT state FROM jobs WHERE id = $1`, exhaustedID.UUID()).Scan(&jobState))
 	require.Equal(t, "dead_letter", jobState)
+
+	organizationRepository := organizationpostgres.New(pool, runner)
+	currency, err := money.NewCurrency("USD")
+	require.NoError(t, err)
+	createRecord := organization.CreateRecord{
+		Organization: organization.Organization{
+			ID: newID(t), Slug: "onboarded-venue", DisplayName: "Onboarded Venue", Status: "active",
+			DefaultLocale: "en-US", DefaultTimezone: "UTC", DefaultCurrency: currency,
+			SettingsVersion: 1, CreatedAt: now, UpdatedAt: now,
+		},
+		IdempotencyID: newID(t), AuditID: newID(t), OutboxID: newID(t),
+		PrincipalType: "platform", PrincipalID: "onboarding-service",
+		IdempotencyKey: "organization-key-1", Fingerprint: sha256.Sum256([]byte("request-one")),
+		IdempotencyExpiry: now.Add(72 * time.Hour),
+	}
+	createdOrganization, replayed, err := organizationRepository.Create(ctx, createRecord)
+	require.NoError(t, err)
+	require.False(t, replayed)
+	require.Equal(t, createRecord.Organization.ID, createdOrganization.ID)
+
+	replayRecord := createRecord
+	replayRecord.Organization.ID = newID(t)
+	replayRecord.IdempotencyID, replayRecord.AuditID, replayRecord.OutboxID = newID(t), newID(t), newID(t)
+	replayedOrganization, replayed, err := organizationRepository.Create(ctx, replayRecord)
+	require.NoError(t, err)
+	require.True(t, replayed)
+	require.Equal(t, createRecord.Organization.ID, replayedOrganization.ID)
+
+	reusedRecord := replayRecord
+	reusedRecord.Fingerprint = sha256.Sum256([]byte("different-request"))
+	_, _, err = organizationRepository.Create(ctx, reusedRecord)
+	require.ErrorIs(t, err, organization.ErrKeyReused)
+
+	conflictingRecord := createRecord
+	conflictingRecord.Organization.ID = newID(t)
+	conflictingRecord.IdempotencyID, conflictingRecord.AuditID, conflictingRecord.OutboxID = newID(t), newID(t), newID(t)
+	conflictingRecord.IdempotencyKey = "organization-key-2"
+	conflictingRecord.Fingerprint = sha256.Sum256([]byte("request-two"))
+	_, _, err = organizationRepository.Create(ctx, conflictingRecord)
+	require.ErrorIs(t, err, organization.ErrSlugConflict)
+
+	var platformIdempotency, createdAudits, createdEvents int
+	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM idempotency_records WHERE organization_id IS NULL`).Scan(&platformIdempotency))
+	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM audit_entries WHERE action = 'organization.created'`).Scan(&createdAudits))
+	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM outbox_events WHERE event_type = 'organization.created'`).Scan(&createdEvents))
+	require.Equal(t, 1, platformIdempotency)
+	require.Equal(t, 1, createdAudits)
+	require.Equal(t, 1, createdEvents)
 }
 
 func newID(t *testing.T) identifier.ID {

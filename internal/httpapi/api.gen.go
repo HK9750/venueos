@@ -22,6 +22,399 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AvailabilitySeatState.
+const (
+	Available AvailabilitySeatState = "available"
+	Comped    AvailabilitySeatState = "comped"
+	Held      AvailabilitySeatState = "held"
+	Killed    AvailabilitySeatState = "killed"
+	Sold      AvailabilitySeatState = "sold"
+)
+
+// Valid indicates whether the value is a known member of the AvailabilitySeatState enum.
+func (e AvailabilitySeatState) Valid() bool {
+	switch e {
+	case Available:
+		return true
+	case Comped:
+		return true
+	case Held:
+		return true
+	case Killed:
+		return true
+	case Sold:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EventStatus.
+const (
+	EventStatusArchived    EventStatus = "archived"
+	EventStatusCancelled   EventStatus = "cancelled"
+	EventStatusDraft       EventStatus = "draft"
+	EventStatusPublished   EventStatus = "published"
+	EventStatusUnpublished EventStatus = "unpublished"
+)
+
+// Valid indicates whether the value is a known member of the EventStatus enum.
+func (e EventStatus) Valid() bool {
+	switch e {
+	case EventStatusArchived:
+		return true
+	case EventStatusCancelled:
+		return true
+	case EventStatusDraft:
+		return true
+	case EventStatusPublished:
+		return true
+	case EventStatusUnpublished:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for InventoryMode.
+const (
+	AssignedSeating  InventoryMode = "assigned_seating"
+	GeneralAdmission InventoryMode = "general_admission"
+)
+
+// Valid indicates whether the value is a known member of the InventoryMode enum.
+func (e InventoryMode) Valid() bool {
+	switch e {
+	case AssignedSeating:
+		return true
+	case GeneralAdmission:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for InvitationStatus.
+const (
+	InvitationStatusAccepted  InvitationStatus = "accepted"
+	InvitationStatusCancelled InvitationStatus = "cancelled"
+	InvitationStatusExpired   InvitationStatus = "expired"
+	InvitationStatusInvited   InvitationStatus = "invited"
+	InvitationStatusRevoked   InvitationStatus = "revoked"
+)
+
+// Valid indicates whether the value is a known member of the InvitationStatus enum.
+func (e InvitationStatus) Valid() bool {
+	switch e {
+	case InvitationStatusAccepted:
+		return true
+	case InvitationStatusCancelled:
+		return true
+	case InvitationStatusExpired:
+		return true
+	case InvitationStatusInvited:
+		return true
+	case InvitationStatusRevoked:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IssuedInvitationStatus.
+const (
+	IssuedInvitationStatusAccepted  IssuedInvitationStatus = "accepted"
+	IssuedInvitationStatusCancelled IssuedInvitationStatus = "cancelled"
+	IssuedInvitationStatusExpired   IssuedInvitationStatus = "expired"
+	IssuedInvitationStatusInvited   IssuedInvitationStatus = "invited"
+	IssuedInvitationStatusRevoked   IssuedInvitationStatus = "revoked"
+)
+
+// Valid indicates whether the value is a known member of the IssuedInvitationStatus enum.
+func (e IssuedInvitationStatus) Valid() bool {
+	switch e {
+	case IssuedInvitationStatusAccepted:
+		return true
+	case IssuedInvitationStatusCancelled:
+		return true
+	case IssuedInvitationStatusExpired:
+		return true
+	case IssuedInvitationStatusInvited:
+		return true
+	case IssuedInvitationStatusRevoked:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MembershipStatus.
+const (
+	MembershipStatusActive  MembershipStatus = "active"
+	MembershipStatusRevoked MembershipStatus = "revoked"
+)
+
+// Valid indicates whether the value is a known member of the MembershipStatus enum.
+func (e MembershipStatus) Valid() bool {
+	switch e {
+	case MembershipStatusActive:
+		return true
+	case MembershipStatusRevoked:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MembershipRole.
+const (
+	MembershipRoleAdmin       MembershipRole = "admin"
+	MembershipRoleBoxOffice   MembershipRole = "box_office"
+	MembershipRoleDoorManager MembershipRole = "door_manager"
+	MembershipRoleFinance     MembershipRole = "finance"
+	MembershipRoleOwner       MembershipRole = "owner"
+	MembershipRoleReadOnly    MembershipRole = "read_only"
+	MembershipRoleScanner     MembershipRole = "scanner"
+	MembershipRoleSupport     MembershipRole = "support"
+)
+
+// Valid indicates whether the value is a known member of the MembershipRole enum.
+func (e MembershipRole) Valid() bool {
+	switch e {
+	case MembershipRoleAdmin:
+		return true
+	case MembershipRoleBoxOffice:
+		return true
+	case MembershipRoleDoorManager:
+		return true
+	case MembershipRoleFinance:
+		return true
+	case MembershipRoleOwner:
+		return true
+	case MembershipRoleReadOnly:
+		return true
+	case MembershipRoleScanner:
+		return true
+	case MembershipRoleSupport:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OrganizationStatus.
+const (
+	OrganizationStatusActive    OrganizationStatus = "active"
+	OrganizationStatusClosed    OrganizationStatus = "closed"
+	OrganizationStatusSuspended OrganizationStatus = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the OrganizationStatus enum.
+func (e OrganizationStatus) Valid() bool {
+	switch e {
+	case OrganizationStatusActive:
+		return true
+	case OrganizationStatusClosed:
+		return true
+	case OrganizationStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PriceTierStatus.
+const (
+	PriceTierStatusActive   PriceTierStatus = "active"
+	PriceTierStatusArchived PriceTierStatus = "archived"
+	PriceTierStatusDraft    PriceTierStatus = "draft"
+	PriceTierStatusInactive PriceTierStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the PriceTierStatus enum.
+func (e PriceTierStatus) Valid() bool {
+	switch e {
+	case PriceTierStatusActive:
+		return true
+	case PriceTierStatusArchived:
+		return true
+	case PriceTierStatusDraft:
+		return true
+	case PriceTierStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SalesChannelStatus.
+const (
+	SalesChannelStatusActive   SalesChannelStatus = "active"
+	SalesChannelStatusArchived SalesChannelStatus = "archived"
+	SalesChannelStatusInactive SalesChannelStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the SalesChannelStatus enum.
+func (e SalesChannelStatus) Valid() bool {
+	switch e {
+	case SalesChannelStatusActive:
+		return true
+	case SalesChannelStatusArchived:
+		return true
+	case SalesChannelStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SalesChannelType.
+const (
+	SalesChannelTypeBoxOffice   SalesChannelType = "box_office"
+	SalesChannelTypePartner     SalesChannelType = "partner"
+	SalesChannelTypePrivateLink SalesChannelType = "private_link"
+	SalesChannelTypePublic      SalesChannelType = "public"
+)
+
+// Valid indicates whether the value is a known member of the SalesChannelType enum.
+func (e SalesChannelType) Valid() bool {
+	switch e {
+	case SalesChannelTypeBoxOffice:
+		return true
+	case SalesChannelTypePartner:
+		return true
+	case SalesChannelTypePrivateLink:
+		return true
+	case SalesChannelTypePublic:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SeatMapStatus.
+const (
+	SeatMapStatusDraft      SeatMapStatus = "draft"
+	SeatMapStatusPublished  SeatMapStatus = "published"
+	SeatMapStatusRetired    SeatMapStatus = "retired"
+	SeatMapStatusValidating SeatMapStatus = "validating"
+)
+
+// Valid indicates whether the value is a known member of the SeatMapStatus enum.
+func (e SeatMapStatus) Valid() bool {
+	switch e {
+	case SeatMapStatusDraft:
+		return true
+	case SeatMapStatusPublished:
+		return true
+	case SeatMapStatusRetired:
+		return true
+	case SeatMapStatusValidating:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SessionChannelAllocationMode.
+const (
+	HardReserved SessionChannelAllocationMode = "hard_reserved"
+	SoftPolicy   SessionChannelAllocationMode = "soft_policy"
+)
+
+// Valid indicates whether the value is a known member of the SessionChannelAllocationMode enum.
+func (e SessionChannelAllocationMode) Valid() bool {
+	switch e {
+	case HardReserved:
+		return true
+	case SoftPolicy:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SessionStatus.
+const (
+	SessionStatusCancelled   SessionStatus = "cancelled"
+	SessionStatusCompleted   SessionStatus = "completed"
+	SessionStatusDraft       SessionStatus = "draft"
+	SessionStatusInProgress  SessionStatus = "in_progress"
+	SessionStatusOnSale      SessionStatus = "on_sale"
+	SessionStatusSalesClosed SessionStatus = "sales_closed"
+	SessionStatusScheduled   SessionStatus = "scheduled"
+)
+
+// Valid indicates whether the value is a known member of the SessionStatus enum.
+func (e SessionStatus) Valid() bool {
+	switch e {
+	case SessionStatusCancelled:
+		return true
+	case SessionStatusCompleted:
+		return true
+	case SessionStatusDraft:
+		return true
+	case SessionStatusInProgress:
+		return true
+	case SessionStatusOnSale:
+		return true
+	case SessionStatusSalesClosed:
+		return true
+	case SessionStatusScheduled:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SpaceStatus.
+const (
+	SpaceStatusActive   SpaceStatus = "active"
+	SpaceStatusArchived SpaceStatus = "archived"
+	SpaceStatusDraft    SpaceStatus = "draft"
+	SpaceStatusInactive SpaceStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the SpaceStatus enum.
+func (e SpaceStatus) Valid() bool {
+	switch e {
+	case SpaceStatusActive:
+		return true
+	case SpaceStatusArchived:
+		return true
+	case SpaceStatusDraft:
+		return true
+	case SpaceStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for VenueStatus.
+const (
+	VenueStatusActive   VenueStatus = "active"
+	VenueStatusArchived VenueStatus = "archived"
+	VenueStatusDraft    VenueStatus = "draft"
+	VenueStatusInactive VenueStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the VenueStatus enum.
+func (e VenueStatus) Valid() bool {
+	switch e {
+	case VenueStatusActive:
+		return true
+	case VenueStatusArchived:
+		return true
+	case VenueStatusDraft:
+		return true
+	case VenueStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
 // APIError defines model for APIError.
 type APIError struct {
 	Code      string            `json:"code"`
@@ -30,10 +423,188 @@ type APIError struct {
 	RequestId RequestIdentifier `json:"request_id"`
 }
 
+// AcceptInvitation defines model for AcceptInvitation.
+type AcceptInvitation struct {
+	Token string `json:"token"`
+}
+
+// AvailabilityEvent defines model for AvailabilityEvent.
+type AvailabilityEvent struct {
+	EventType     string                 `json:"event_type"`
+	Id            openapi_types.UUID     `json:"id"`
+	OccurredAt    time.Time              `json:"occurred_at"`
+	Payload       map[string]interface{} `json:"payload"`
+	SchemaVersion int32                  `json:"schema_version"`
+	Sequence      int64                  `json:"sequence"`
+	SessionId     openapi_types.UUID     `json:"session_id"`
+}
+
+// AvailabilityGAPool defines model for AvailabilityGAPool.
+type AvailabilityGAPool struct {
+	Available        int64              `json:"available"`
+	CompedQuantity   int64              `json:"comped_quantity"`
+	HeldQuantity     int64              `json:"held_quantity"`
+	Id               openapi_types.UUID `json:"id"`
+	KilledQuantity   int64              `json:"killed_quantity"`
+	SellableCapacity int64              `json:"sellable_capacity"`
+	Slug             string             `json:"slug"`
+	SoldQuantity     int64              `json:"sold_quantity"`
+	Version          int64              `json:"version"`
+}
+
+// AvailabilityReplayPage defines model for AvailabilityReplayPage.
+type AvailabilityReplayPage struct {
+	CurrentRevision int64               `json:"current_revision"`
+	Events          []AvailabilityEvent `json:"events"`
+	HasMore         bool                `json:"has_more"`
+}
+
+// AvailabilitySeat defines model for AvailabilitySeat.
+type AvailabilitySeat struct {
+	Category   string                `json:"category"`
+	Id         openapi_types.UUID    `json:"id"`
+	Label      string                `json:"label"`
+	SeatKey    string                `json:"seat_key"`
+	Sellable   bool                  `json:"sellable"`
+	State      AvailabilitySeatState `json:"state"`
+	Version    int64                 `json:"version"`
+	Wheelchair bool                  `json:"wheelchair"`
+}
+
+// AvailabilitySeatState defines model for AvailabilitySeat.State.
+type AvailabilitySeatState string
+
+// AvailabilitySnapshot defines model for AvailabilitySnapshot.
+type AvailabilitySnapshot struct {
+	GaPools        []AvailabilityGAPool `json:"ga_pools"`
+	InventoryMode  InventoryMode        `json:"inventory_mode"`
+	OrganizationId openapi_types.UUID   `json:"organization_id"`
+	Revision       int64                `json:"revision"`
+	Seats          []AvailabilitySeat   `json:"seats"`
+	ServerTime     time.Time            `json:"server_time"`
+	SessionId      openapi_types.UUID   `json:"session_id"`
+	SessionStatus  SessionStatus        `json:"session_status"`
+}
+
+// ChangeMembershipRole defines model for ChangeMembershipRole.
+type ChangeMembershipRole struct {
+	Role MembershipRole `json:"role"`
+}
+
+// CreateEvent defines model for CreateEvent.
+type CreateEvent struct {
+	LongDescription  *string `json:"long_description,omitempty"`
+	ShortDescription *string `json:"short_description,omitempty"`
+	Slug             string  `json:"slug"`
+	Title            string  `json:"title"`
+}
+
+// CreateGAPool defines model for CreateGAPool.
+type CreateGAPool struct {
+	DisplayName      string `json:"display_name"`
+	PhysicalCapacity int64  `json:"physical_capacity"`
+	SellableCapacity int64  `json:"sellable_capacity"`
+	Slug             string `json:"slug"`
+}
+
+// CreateGate defines model for CreateGate.
+type CreateGate struct {
+	Code        string              `json:"code"`
+	DisplayName string              `json:"display_name"`
+	SpaceId     *openapi_types.UUID `json:"space_id,omitempty"`
+}
+
+// CreateInvitation defines model for CreateInvitation.
+type CreateInvitation struct {
+	Email openapi_types.Email `json:"email"`
+	Role  MembershipRole      `json:"role"`
+}
+
+// CreateOrganization defines model for CreateOrganization.
+type CreateOrganization struct {
+	// DefaultCurrency Example: PKR
+	DefaultCurrency string `json:"default_currency"`
+	DefaultLocale   string `json:"default_locale"`
+
+	// DefaultTimezone Example: Asia/Karachi
+	DefaultTimezone string `json:"default_timezone"`
+	DisplayName     string `json:"display_name"`
+	Slug            string `json:"slug"`
+}
+
+// CreatePriceTier defines model for CreatePriceTier.
+type CreatePriceTier struct {
+	AmountMinor     int64      `json:"amount_minor"`
+	Currency        string     `json:"currency"`
+	DisplayName     string     `json:"display_name"`
+	MaximumQuantity *int       `json:"maximum_quantity,omitempty"`
+	MinimumQuantity *int       `json:"minimum_quantity,omitempty"`
+	SalesEndAt      *time.Time `json:"sales_end_at,omitempty"`
+	SalesStartAt    *time.Time `json:"sales_start_at,omitempty"`
+	Slug            string     `json:"slug"`
+}
+
+// CreateSalesChannel defines model for CreateSalesChannel.
+type CreateSalesChannel struct {
+	Configuration *map[string]interface{} `json:"configuration,omitempty"`
+	DisplayName   string                  `json:"display_name"`
+	Key           string                  `json:"key"`
+	Type          SalesChannelType        `json:"type"`
+}
+
+// CreateSeatMap defines model for CreateSeatMap.
+type CreateSeatMap struct {
+	Content SeatMapContent `json:"content"`
+	Name    string         `json:"name"`
+}
+
+// CreateSession defines model for CreateSession.
+type CreateSession struct {
+	DoorsAt          *time.Time          `json:"doors_at,omitempty"`
+	EndsAt           time.Time           `json:"ends_at"`
+	EventRevision    int64               `json:"event_revision"`
+	SalesEndAt       *time.Time          `json:"sales_end_at,omitempty"`
+	SalesStartAt     *time.Time          `json:"sales_start_at,omitempty"`
+	SeatMapVersionId *openapi_types.UUID `json:"seat_map_version_id,omitempty"`
+	SpaceId          openapi_types.UUID  `json:"space_id"`
+	StartsAt         time.Time           `json:"starts_at"`
+	Timezone         string              `json:"timezone"`
+	VenueId          openapi_types.UUID  `json:"venue_id"`
+}
+
+// CreateSessionChannelAllocation defines model for CreateSessionChannelAllocation.
+type CreateSessionChannelAllocation struct {
+	ChannelId openapi_types.UUID           `json:"channel_id"`
+	Mode      SessionChannelAllocationMode `json:"mode"`
+	Quantity  int64                        `json:"quantity"`
+	ScopeKey  *string                      `json:"scope_key,omitempty"`
+}
+
+// CreateSpace defines model for CreateSpace.
+type CreateSpace struct {
+	DisplayName      string        `json:"display_name"`
+	InventoryMode    InventoryMode `json:"inventory_mode"`
+	PhysicalCapacity int64         `json:"physical_capacity"`
+	Slug             string        `json:"slug"`
+}
+
 // CreateUser defines model for CreateUser.
 type CreateUser struct {
 	Email openapi_types.Email `json:"email"`
 	Name  string              `json:"name"`
+}
+
+// CreateVenue defines model for CreateVenue.
+type CreateVenue struct {
+	DisplayName string `json:"display_name"`
+	Slug        string `json:"slug"`
+	Timezone    string `json:"timezone"`
+}
+
+// CursorPage defines model for CursorPage.
+type CursorPage struct {
+	HasMore    bool    `json:"has_more"`
+	NextCursor *string `json:"next_cursor,omitempty"`
 }
 
 // ErrorDetail defines model for ErrorDetail.
@@ -48,8 +619,385 @@ type ErrorResponse struct {
 	Error APIError `json:"error"`
 }
 
+// Event defines model for Event.
+type Event struct {
+	Checksum         string             `json:"checksum"`
+	CreatedAt        time.Time          `json:"created_at"`
+	CurrentRevision  int64              `json:"current_revision"`
+	Id               openapi_types.UUID `json:"id"`
+	LongDescription  string             `json:"long_description"`
+	OrganizationId   openapi_types.UUID `json:"organization_id"`
+	PublishedAt      *time.Time         `json:"published_at,omitempty"`
+	ShortDescription string             `json:"short_description"`
+	Slug             string             `json:"slug"`
+	Status           EventStatus        `json:"status"`
+	Title            string             `json:"title"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	Version          int64              `json:"version"`
+}
+
+// EventPage defines model for EventPage.
+type EventPage struct {
+	Items []Event    `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// EventStatus defines model for EventStatus.
+type EventStatus string
+
+// GAPool defines model for GAPool.
+type GAPool struct {
+	CreatedAt        time.Time          `json:"created_at"`
+	DisplayName      string             `json:"display_name"`
+	Id               openapi_types.UUID `json:"id"`
+	OrganizationId   openapi_types.UUID `json:"organization_id"`
+	PhysicalCapacity int64              `json:"physical_capacity"`
+	SellableCapacity int64              `json:"sellable_capacity"`
+	Slug             string             `json:"slug"`
+	SpaceId          openapi_types.UUID `json:"space_id"`
+	Status           SpaceStatus        `json:"status"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	Version          int64              `json:"version"`
+}
+
+// GAPoolPage defines model for GAPoolPage.
+type GAPoolPage struct {
+	Items []GAPool   `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// Gate defines model for Gate.
+type Gate struct {
+	Code           string              `json:"code"`
+	CreatedAt      time.Time           `json:"created_at"`
+	DisplayName    string              `json:"display_name"`
+	Id             openapi_types.UUID  `json:"id"`
+	OrganizationId openapi_types.UUID  `json:"organization_id"`
+	SpaceId        *openapi_types.UUID `json:"space_id,omitempty"`
+	Status         SpaceStatus         `json:"status"`
+	UpdatedAt      time.Time           `json:"updated_at"`
+	VenueId        openapi_types.UUID  `json:"venue_id"`
+	Version        int64               `json:"version"`
+}
+
+// GatePage defines model for GatePage.
+type GatePage struct {
+	Items []Gate     `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// InventoryMode defines model for InventoryMode.
+type InventoryMode string
+
+// Invitation defines model for Invitation.
+type Invitation struct {
+	AcceptedAt     *time.Time          `json:"accepted_at,omitempty"`
+	CreatedAt      time.Time           `json:"created_at"`
+	Email          openapi_types.Email `json:"email"`
+	ExpiresAt      time.Time           `json:"expires_at"`
+	Id             openapi_types.UUID  `json:"id"`
+	MembershipId   *openapi_types.UUID `json:"membership_id,omitempty"`
+	OrganizationId openapi_types.UUID  `json:"organization_id"`
+	RevokedAt      *time.Time          `json:"revoked_at,omitempty"`
+	Role           MembershipRole      `json:"role"`
+	Status         InvitationStatus    `json:"status"`
+	Token          *string             `json:"token,omitempty"`
+	UpdatedAt      time.Time           `json:"updated_at"`
+	Version        int64               `json:"version"`
+}
+
+// InvitationStatus defines model for Invitation.Status.
+type InvitationStatus string
+
+// IssuedInvitation defines model for IssuedInvitation.
+type IssuedInvitation struct {
+	AcceptedAt     *time.Time             `json:"accepted_at,omitempty"`
+	CreatedAt      time.Time              `json:"created_at"`
+	Email          openapi_types.Email    `json:"email"`
+	ExpiresAt      time.Time              `json:"expires_at"`
+	Id             openapi_types.UUID     `json:"id"`
+	MembershipId   *openapi_types.UUID    `json:"membership_id,omitempty"`
+	OrganizationId openapi_types.UUID     `json:"organization_id"`
+	RevokedAt      *time.Time             `json:"revoked_at,omitempty"`
+	Role           MembershipRole         `json:"role"`
+	Status         IssuedInvitationStatus `json:"status"`
+	Token          string                 `json:"token"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	Version        int64                  `json:"version"`
+}
+
+// IssuedInvitationStatus defines model for IssuedInvitation.Status.
+type IssuedInvitationStatus string
+
+// Membership defines model for Membership.
+type Membership struct {
+	CreatedAt      time.Time            `json:"created_at"`
+	Id             openapi_types.UUID   `json:"id"`
+	OrganizationId openapi_types.UUID   `json:"organization_id"`
+	RevokedAt      *time.Time           `json:"revoked_at,omitempty"`
+	Role           MembershipRole       `json:"role"`
+	Status         MembershipStatus     `json:"status"`
+	UpdatedAt      time.Time            `json:"updated_at"`
+	UserId         openapi_types.UUID   `json:"user_id"`
+	VenueScope     []openapi_types.UUID `json:"venue_scope"`
+	Version        int64                `json:"version"`
+}
+
+// MembershipStatus defines model for Membership.Status.
+type MembershipStatus string
+
+// MembershipPage defines model for MembershipPage.
+type MembershipPage struct {
+	Items []Membership `json:"items"`
+	Page  struct {
+		HasMore    bool    `json:"has_more"`
+		NextCursor *string `json:"next_cursor"`
+	} `json:"page"`
+}
+
+// MembershipRole defines model for MembershipRole.
+type MembershipRole string
+
+// Organization defines model for Organization.
+type Organization struct {
+	CreatedAt       time.Time          `json:"created_at"`
+	DefaultCurrency string             `json:"default_currency"`
+	DefaultLocale   string             `json:"default_locale"`
+	DefaultTimezone string             `json:"default_timezone"`
+	DisplayName     string             `json:"display_name"`
+	Id              openapi_types.UUID `json:"id"`
+	SettingsVersion int64              `json:"settings_version"`
+	Slug            string             `json:"slug"`
+	Status          OrganizationStatus `json:"status"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+}
+
+// OrganizationStatus defines model for Organization.Status.
+type OrganizationStatus string
+
+// PriceTier defines model for PriceTier.
+type PriceTier struct {
+	AmountMinor     int64              `json:"amount_minor"`
+	CreatedAt       time.Time          `json:"created_at"`
+	Currency        string             `json:"currency"`
+	DisplayName     string             `json:"display_name"`
+	Id              openapi_types.UUID `json:"id"`
+	MaximumQuantity int                `json:"maximum_quantity"`
+	MinimumQuantity int                `json:"minimum_quantity"`
+	OrganizationId  openapi_types.UUID `json:"organization_id"`
+	SalesEndAt      *time.Time         `json:"sales_end_at,omitempty"`
+	SalesStartAt    *time.Time         `json:"sales_start_at,omitempty"`
+	SessionId       openapi_types.UUID `json:"session_id"`
+	Slug            string             `json:"slug"`
+	Status          PriceTierStatus    `json:"status"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+	Version         int64              `json:"version"`
+}
+
+// PriceTierPage defines model for PriceTierPage.
+type PriceTierPage struct {
+	Items []PriceTier `json:"items"`
+	Page  CursorPage  `json:"page"`
+}
+
+// PriceTierStatus defines model for PriceTierStatus.
+type PriceTierStatus string
+
+// PublicationValidationIssue defines model for PublicationValidationIssue.
+type PublicationValidationIssue struct {
+	Code       string              `json:"code"`
+	Message    string              `json:"message"`
+	ResourceId *openapi_types.UUID `json:"resource_id,omitempty"`
+}
+
+// PublicationValidationReport defines model for PublicationValidationReport.
+type PublicationValidationReport struct {
+	Blockers  []PublicationValidationIssue `json:"blockers"`
+	CheckedAt time.Time                    `json:"checked_at"`
+	EventId   openapi_types.UUID           `json:"event_id"`
+	Valid     bool                         `json:"valid"`
+	Warnings  []PublicationValidationIssue `json:"warnings"`
+}
+
 // RequestIdentifier defines model for RequestIdentifier.
 type RequestIdentifier = string
+
+// SalesChannel defines model for SalesChannel.
+type SalesChannel struct {
+	Configuration  map[string]interface{} `json:"configuration"`
+	CreatedAt      time.Time              `json:"created_at"`
+	DisplayName    string                 `json:"display_name"`
+	Id             openapi_types.UUID     `json:"id"`
+	Key            string                 `json:"key"`
+	OrganizationId openapi_types.UUID     `json:"organization_id"`
+	Status         SalesChannelStatus     `json:"status"`
+	Type           SalesChannelType       `json:"type"`
+	UpdatedAt      time.Time              `json:"updated_at"`
+	Version        int64                  `json:"version"`
+}
+
+// SalesChannelPage defines model for SalesChannelPage.
+type SalesChannelPage struct {
+	Items []SalesChannel `json:"items"`
+	Page  CursorPage     `json:"page"`
+}
+
+// SalesChannelStatus defines model for SalesChannelStatus.
+type SalesChannelStatus string
+
+// SalesChannelType defines model for SalesChannelType.
+type SalesChannelType string
+
+// SeatMap defines model for SeatMap.
+type SeatMap struct {
+	Checksum       string             `json:"checksum"`
+	Content        SeatMapContent     `json:"content"`
+	CreatedAt      time.Time          `json:"created_at"`
+	Id             openapi_types.UUID `json:"id"`
+	Name           string             `json:"name"`
+	OrganizationId openapi_types.UUID `json:"organization_id"`
+	PublishedAt    *time.Time         `json:"published_at,omitempty"`
+	Revision       int64              `json:"revision"`
+	SeatCount      int32              `json:"seat_count"`
+	SellableCount  int32              `json:"sellable_count"`
+	SpaceId        openapi_types.UUID `json:"space_id"`
+	Status         SeatMapStatus      `json:"status"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	Version        int64              `json:"version"`
+}
+
+// SeatMapContent defines model for SeatMapContent.
+type SeatMapContent struct {
+	Sections []SeatMapSection `json:"sections"`
+}
+
+// SeatMapPage defines model for SeatMapPage.
+type SeatMapPage struct {
+	Items []SeatMap  `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// SeatMapRow defines model for SeatMapRow.
+type SeatMapRow struct {
+	Id    string        `json:"id"`
+	Label string        `json:"label"`
+	Seats []SeatMapSeat `json:"seats"`
+}
+
+// SeatMapSeat defines model for SeatMapSeat.
+type SeatMapSeat struct {
+	Category    *string `json:"category,omitempty"`
+	CompanionTo *string `json:"companion_to,omitempty"`
+	Id          string  `json:"id"`
+	Label       string  `json:"label"`
+	Sellable    bool    `json:"sellable"`
+	Wheelchair  *bool   `json:"wheelchair,omitempty"`
+}
+
+// SeatMapSection defines model for SeatMapSection.
+type SeatMapSection struct {
+	Id    string       `json:"id"`
+	Label string       `json:"label"`
+	Rows  []SeatMapRow `json:"rows"`
+}
+
+// SeatMapStatus defines model for SeatMapStatus.
+type SeatMapStatus string
+
+// Session defines model for Session.
+type Session struct {
+	CreatedAt        time.Time           `json:"created_at"`
+	DoorsAt          *time.Time          `json:"doors_at,omitempty"`
+	EndsAt           time.Time           `json:"ends_at"`
+	EventId          openapi_types.UUID  `json:"event_id"`
+	EventRevision    int64               `json:"event_revision"`
+	Id               openapi_types.UUID  `json:"id"`
+	InventoryMode    InventoryMode       `json:"inventory_mode"`
+	OrganizationId   openapi_types.UUID  `json:"organization_id"`
+	SalesEndAt       *time.Time          `json:"sales_end_at,omitempty"`
+	SalesStartAt     *time.Time          `json:"sales_start_at,omitempty"`
+	SeatMapVersionId *openapi_types.UUID `json:"seat_map_version_id,omitempty"`
+	SpaceId          openapi_types.UUID  `json:"space_id"`
+	StartsAt         time.Time           `json:"starts_at"`
+	Status           SessionStatus       `json:"status"`
+	Timezone         string              `json:"timezone"`
+	UpdatedAt        time.Time           `json:"updated_at"`
+	VenueId          openapi_types.UUID  `json:"venue_id"`
+	Version          int64               `json:"version"`
+}
+
+// SessionChannelAllocation defines model for SessionChannelAllocation.
+type SessionChannelAllocation struct {
+	ChannelId      openapi_types.UUID           `json:"channel_id"`
+	CreatedAt      time.Time                    `json:"created_at"`
+	Id             openapi_types.UUID           `json:"id"`
+	Mode           SessionChannelAllocationMode `json:"mode"`
+	OrganizationId openapi_types.UUID           `json:"organization_id"`
+	Quantity       int64                        `json:"quantity"`
+	ScopeKey       string                       `json:"scope_key"`
+	SessionId      openapi_types.UUID           `json:"session_id"`
+	UpdatedAt      time.Time                    `json:"updated_at"`
+	Version        int64                        `json:"version"`
+}
+
+// SessionChannelAllocationMode defines model for SessionChannelAllocationMode.
+type SessionChannelAllocationMode string
+
+// SessionChannelAllocationPage defines model for SessionChannelAllocationPage.
+type SessionChannelAllocationPage struct {
+	Items []SessionChannelAllocation `json:"items"`
+	Page  CursorPage                 `json:"page"`
+}
+
+// SessionPage defines model for SessionPage.
+type SessionPage struct {
+	Items []Session  `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// SessionStatus defines model for SessionStatus.
+type SessionStatus string
+
+// Space defines model for Space.
+type Space struct {
+	CreatedAt        time.Time          `json:"created_at"`
+	DisplayName      string             `json:"display_name"`
+	Id               openapi_types.UUID `json:"id"`
+	InventoryMode    InventoryMode      `json:"inventory_mode"`
+	OrganizationId   openapi_types.UUID `json:"organization_id"`
+	PhysicalCapacity int64              `json:"physical_capacity"`
+	Slug             string             `json:"slug"`
+	Status           SpaceStatus        `json:"status"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	VenueId          openapi_types.UUID `json:"venue_id"`
+	Version          int64              `json:"version"`
+}
+
+// SpacePage defines model for SpacePage.
+type SpacePage struct {
+	Items []Space    `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// SpaceStatus defines model for SpaceStatus.
+type SpaceStatus string
+
+// UpdateEvent defines model for UpdateEvent.
+type UpdateEvent struct {
+	LongDescription  *string `json:"long_description,omitempty"`
+	ShortDescription *string `json:"short_description,omitempty"`
+	Slug             string  `json:"slug"`
+	Title            string  `json:"title"`
+}
+
+// UpdateSeatMap defines model for UpdateSeatMap.
+type UpdateSeatMap struct {
+	Content SeatMapContent `json:"content"`
+	Name    string         `json:"name"`
+}
+
+// UpdateVenue defines model for UpdateVenue.
+type UpdateVenue = CreateVenue
 
 // User defines model for User.
 type User struct {
@@ -67,14 +1015,220 @@ type UserList struct {
 	Offset int    `json:"offset"`
 }
 
+// Venue defines model for Venue.
+type Venue struct {
+	CreatedAt      time.Time          `json:"created_at"`
+	DisplayName    string             `json:"display_name"`
+	Id             openapi_types.UUID `json:"id"`
+	OrganizationId openapi_types.UUID `json:"organization_id"`
+	Slug           string             `json:"slug"`
+	Status         VenueStatus        `json:"status"`
+	Timezone       string             `json:"timezone"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	Version        int64              `json:"version"`
+}
+
+// VenuePage defines model for VenuePage.
+type VenuePage struct {
+	Items []Venue    `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// VenueStatus defines model for VenueStatus.
+type VenueStatus string
+
+// IdempotencyKey defines model for IdempotencyKey.
+type IdempotencyKey = string
+
+// IfMatch defines model for IfMatch.
+type IfMatch = string
+
 // Problem Example: {"error":{"code":"validation_failed","details":[{"code":"invalid","field":"currency","message":"Use a supported currency."}],"message":"The request is invalid.","request_id":"req_01JEXAMPLE"}}
 type Problem = ErrorResponse
+
+// CreateOrganizationParams defines parameters for CreateOrganization.
+type CreateOrganizationParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ListEventsParams defines parameters for ListEvents.
+type ListEventsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// UpdateEventParams defines parameters for UpdateEvent.
+type UpdateEventParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// PublishEventParams defines parameters for PublishEvent.
+type PublishEventParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ListSessionsParams defines parameters for ListSessions.
+type ListSessionsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListSessionChannelAllocationsParams defines parameters for ListSessionChannelAllocations.
+type ListSessionChannelAllocationsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListPriceTiersParams defines parameters for ListPriceTiers.
+type ListPriceTiersParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// RevokeInvitationParams defines parameters for RevokeInvitation.
+type RevokeInvitationParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ListMembershipsParams defines parameters for ListMemberships.
+type ListMembershipsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// RevokeMembershipParams defines parameters for RevokeMembership.
+type RevokeMembershipParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ChangeMembershipRoleParams defines parameters for ChangeMembershipRole.
+type ChangeMembershipRoleParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ListSalesChannelsParams defines parameters for ListSalesChannels.
+type ListSalesChannelsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListSessionAvailabilityChangesParams defines parameters for ListSessionAvailabilityChanges.
+type ListSessionAvailabilityChangesParams struct {
+	After *int64 `form:"after,omitempty" json:"after,omitempty"`
+	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListVenuesParams defines parameters for ListVenues.
+type ListVenuesParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ArchiveVenueParams defines parameters for ArchiveVenue.
+type ArchiveVenueParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// UpdateVenueParams defines parameters for UpdateVenue.
+type UpdateVenueParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// RestoreVenueParams defines parameters for RestoreVenue.
+type RestoreVenueParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ListGatesParams defines parameters for ListGates.
+type ListGatesParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListSpacesParams defines parameters for ListSpaces.
+type ListSpacesParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListGAPoolsParams defines parameters for ListGAPools.
+type ListGAPoolsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListSeatMapsParams defines parameters for ListSeatMaps.
+type ListSeatMapsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// UpdateSeatMapParams defines parameters for UpdateSeatMap.
+type UpdateSeatMapParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// PublishSeatMapParams defines parameters for PublishSeatMap.
+type PublishSeatMapParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
 
 // ListUsersParams defines parameters for ListUsers.
 type ListUsersParams struct {
 	Limit  *int32 `form:"limit,omitempty" json:"limit,omitempty"`
 	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
 }
+
+// AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
+type AcceptInvitationJSONRequestBody = AcceptInvitation
+
+// CreateOrganizationJSONRequestBody defines body for CreateOrganization for application/json ContentType.
+type CreateOrganizationJSONRequestBody = CreateOrganization
+
+// CreateEventJSONRequestBody defines body for CreateEvent for application/json ContentType.
+type CreateEventJSONRequestBody = CreateEvent
+
+// UpdateEventJSONRequestBody defines body for UpdateEvent for application/json ContentType.
+type UpdateEventJSONRequestBody = UpdateEvent
+
+// CreateSessionJSONRequestBody defines body for CreateSession for application/json ContentType.
+type CreateSessionJSONRequestBody = CreateSession
+
+// CreateSessionChannelAllocationJSONRequestBody defines body for CreateSessionChannelAllocation for application/json ContentType.
+type CreateSessionChannelAllocationJSONRequestBody = CreateSessionChannelAllocation
+
+// CreatePriceTierJSONRequestBody defines body for CreatePriceTier for application/json ContentType.
+type CreatePriceTierJSONRequestBody = CreatePriceTier
+
+// CreateInvitationJSONRequestBody defines body for CreateInvitation for application/json ContentType.
+type CreateInvitationJSONRequestBody = CreateInvitation
+
+// ChangeMembershipRoleJSONRequestBody defines body for ChangeMembershipRole for application/json ContentType.
+type ChangeMembershipRoleJSONRequestBody = ChangeMembershipRole
+
+// CreateSalesChannelJSONRequestBody defines body for CreateSalesChannel for application/json ContentType.
+type CreateSalesChannelJSONRequestBody = CreateSalesChannel
+
+// CreateVenueJSONRequestBody defines body for CreateVenue for application/json ContentType.
+type CreateVenueJSONRequestBody = CreateVenue
+
+// UpdateVenueJSONRequestBody defines body for UpdateVenue for application/json ContentType.
+type UpdateVenueJSONRequestBody = UpdateVenue
+
+// CreateGateJSONRequestBody defines body for CreateGate for application/json ContentType.
+type CreateGateJSONRequestBody = CreateGate
+
+// CreateSpaceJSONRequestBody defines body for CreateSpace for application/json ContentType.
+type CreateSpaceJSONRequestBody = CreateSpace
+
+// CreateGAPoolJSONRequestBody defines body for CreateGAPool for application/json ContentType.
+type CreateGAPoolJSONRequestBody = CreateGAPool
+
+// CreateSeatMapJSONRequestBody defines body for CreateSeatMap for application/json ContentType.
+type CreateSeatMapJSONRequestBody = CreateSeatMap
+
+// UpdateSeatMapJSONRequestBody defines body for UpdateSeatMap for application/json ContentType.
+type UpdateSeatMapJSONRequestBody = UpdateSeatMap
 
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody = CreateUser
@@ -87,6 +1241,147 @@ type ServerInterface interface {
 	// Readyz Check dependency readiness
 	// (GET /readyz)
 	Readyz(w http.ResponseWriter, r *http.Request)
+	// AcceptInvitation Accept a one-time invitation for the authenticated user
+	// (POST /v1/invitations/accept)
+	AcceptInvitation(w http.ResponseWriter, r *http.Request)
+	// CreateOrganization Create an organization through the platform onboarding flow
+	// (POST /v1/organizations)
+	CreateOrganization(w http.ResponseWriter, r *http.Request, params CreateOrganizationParams)
+	// GetOrganization Fetch an organization in the caller's verified tenant scope
+	// (GET /v1/organizations/{organization_id})
+	GetOrganization(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// ListEvents List tenant events
+	// (GET /v1/organizations/{organization_id}/events)
+	ListEvents(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListEventsParams)
+	// CreateEvent Create a draft event
+	// (POST /v1/organizations/{organization_id}/events)
+	CreateEvent(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// GetEvent Get an event
+	// (GET /v1/organizations/{organization_id}/events/{event_id})
+	GetEvent(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID)
+	// UpdateEvent Update the draft revision of an event
+	// (PATCH /v1/organizations/{organization_id}/events/{event_id})
+	UpdateEvent(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, params UpdateEventParams)
+	// CloneEvent Clone the current published event revision into a draft
+	// (POST /v1/organizations/{organization_id}/events/{event_id})
+	CloneEvent(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID)
+	// PublishEvent Publish an immutable event revision
+	// (POST /v1/organizations/{organization_id}/events/{event_id}/publish)
+	PublishEvent(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, params PublishEventParams)
+	// ListSessions List sessions for an event
+	// (GET /v1/organizations/{organization_id}/events/{event_id}/sessions)
+	ListSessions(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, params ListSessionsParams)
+	// CreateSession Schedule a session from a published event revision
+	// (POST /v1/organizations/{organization_id}/events/{event_id}/sessions)
+	CreateSession(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID)
+	// GetSession Get a scheduled session
+	// (GET /v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id})
+	GetSession(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, sessionId openapi_types.UUID)
+	// ListSessionChannelAllocations List session channel allocations
+	// (GET /v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/channel-allocations)
+	ListSessionChannelAllocations(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, sessionId openapi_types.UUID, params ListSessionChannelAllocationsParams)
+	// CreateSessionChannelAllocation Allocate session capacity to a sales channel
+	// (POST /v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/channel-allocations)
+	CreateSessionChannelAllocation(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, sessionId openapi_types.UUID)
+	// ListPriceTiers List price tiers for a session
+	// (GET /v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/price-tiers)
+	ListPriceTiers(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, sessionId openapi_types.UUID, params ListPriceTiersParams)
+	// CreatePriceTier Create a session price tier
+	// (POST /v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/price-tiers)
+	CreatePriceTier(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID, sessionId openapi_types.UUID)
+	// ValidateEventPublication Validate event publication readiness
+	// (POST /v1/organizations/{organization_id}/events/{event_id}/validate-publication)
+	ValidateEventPublication(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, eventId openapi_types.UUID)
+	// CreateInvitation Issue a one-time staff invitation token
+	// (POST /v1/organizations/{organization_id}/invitations)
+	CreateInvitation(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// RevokeInvitation Revoke an unused invitation
+	// (DELETE /v1/organizations/{organization_id}/invitations/{invitation_id})
+	RevokeInvitation(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, invitationId openapi_types.UUID, params RevokeInvitationParams)
+	// ListMemberships List active and revoked memberships in the verified organization
+	// (GET /v1/organizations/{organization_id}/memberships)
+	ListMemberships(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListMembershipsParams)
+	// RevokeMembership Revoke a membership with an optimistic version precondition
+	// (DELETE /v1/organizations/{organization_id}/memberships/{membership_id})
+	RevokeMembership(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, membershipId openapi_types.UUID, params RevokeMembershipParams)
+	// ChangeMembershipRole Change a membership role with an optimistic version precondition
+	// (PATCH /v1/organizations/{organization_id}/memberships/{membership_id})
+	ChangeMembershipRole(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, membershipId openapi_types.UUID, params ChangeMembershipRoleParams)
+	// ListSalesChannels List tenant sales channels
+	// (GET /v1/organizations/{organization_id}/sales-channels)
+	ListSalesChannels(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListSalesChannelsParams)
+	// CreateSalesChannel Create a sales channel
+	// (POST /v1/organizations/{organization_id}/sales-channels)
+	CreateSalesChannel(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// GetSessionAvailability Get the authoritative session inventory snapshot
+	// (GET /v1/organizations/{organization_id}/sessions/{session_id}/availability)
+	GetSessionAvailability(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, sessionId openapi_types.UUID)
+	// ListSessionAvailabilityChanges Replay committed session availability changes
+	// (GET /v1/organizations/{organization_id}/sessions/{session_id}/availability/changes)
+	ListSessionAvailabilityChanges(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, sessionId openapi_types.UUID, params ListSessionAvailabilityChangesParams)
+	// ListVenues List tenant venues
+	// (GET /v1/organizations/{organization_id}/venues)
+	ListVenues(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListVenuesParams)
+	// CreateVenue Create a venue
+	// (POST /v1/organizations/{organization_id}/venues)
+	CreateVenue(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// ArchiveVenue Archive a venue with an optimistic version precondition
+	// (DELETE /v1/organizations/{organization_id}/venues/{venue_id})
+	ArchiveVenue(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, params ArchiveVenueParams)
+	// GetVenue Get a tenant venue
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id})
+	GetVenue(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID)
+	// UpdateVenue Update a venue with an optimistic version precondition
+	// (PATCH /v1/organizations/{organization_id}/venues/{venue_id})
+	UpdateVenue(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, params UpdateVenueParams)
+	// RestoreVenue Restore an archived venue as a draft
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id})
+	RestoreVenue(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, params RestoreVenueParams)
+	// ListGates List venue gates
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/gates)
+	ListGates(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, params ListGatesParams)
+	// CreateGate Create a venue gate
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id}/gates)
+	CreateGate(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID)
+	// GetGate Get a venue gate
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/gates/{gate_id})
+	GetGate(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, gateId openapi_types.UUID)
+	// ListSpaces List spaces in a venue
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/spaces)
+	ListSpaces(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, params ListSpacesParams)
+	// CreateSpace Create a space in a venue
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id}/spaces)
+	CreateSpace(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID)
+	// GetSpace Get a space
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id})
+	GetSpace(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID)
+	// ListGAPools List general-admission pool templates
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/ga-pools)
+	ListGAPools(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, params ListGAPoolsParams)
+	// CreateGAPool Create a general-admission pool template
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/ga-pools)
+	CreateGAPool(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID)
+	// GetGAPool Get a general-admission pool template
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/ga-pools/{pool_id})
+	GetGAPool(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, poolId openapi_types.UUID)
+	// ListSeatMaps List seat-map versions for an assigned-seating space
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps)
+	ListSeatMaps(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, params ListSeatMapsParams)
+	// CreateSeatMap Create a draft seat-map version
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps)
+	CreateSeatMap(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID)
+	// GetSeatMap Get a seat-map version
+	// (GET /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id})
+	GetSeatMap(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, seatMapId openapi_types.UUID)
+	// UpdateSeatMap Update a draft seat-map version
+	// (PATCH /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id})
+	UpdateSeatMap(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, seatMapId openapi_types.UUID, params UpdateSeatMapParams)
+	// CloneSeatMap Clone an existing seat-map version into a draft
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id})
+	CloneSeatMap(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, seatMapId openapi_types.UUID)
+	// PublishSeatMap Publish an immutable seat-map revision
+	// (POST /v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id}/publish)
+	PublishSeatMap(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, venueId openapi_types.UUID, spaceId openapi_types.UUID, seatMapId openapi_types.UUID, params PublishSeatMapParams)
 	// ListUsers List users
 	// (GET /v1/users)
 	ListUsers(w http.ResponseWriter, r *http.Request, params ListUsersParams)
@@ -126,6 +1421,2376 @@ func (siw *ServerInterfaceWrapper) Readyz(w http.ResponseWriter, r *http.Request
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Readyz(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptInvitation(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateOrganization operation middleware
+func (siw *ServerInterfaceWrapper) CreateOrganization(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateOrganizationParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateOrganization(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetOrganization operation middleware
+func (siw *ServerInterfaceWrapper) GetOrganization(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetOrganization(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListEvents operation middleware
+func (siw *ServerInterfaceWrapper) ListEvents(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListEventsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListEvents(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateEvent operation middleware
+func (siw *ServerInterfaceWrapper) CreateEvent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateEvent(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEvent operation middleware
+func (siw *ServerInterfaceWrapper) GetEvent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEvent(w, r, organizationId, eventId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateEvent operation middleware
+func (siw *ServerInterfaceWrapper) UpdateEvent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateEventParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateEvent(w, r, organizationId, eventId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CloneEvent operation middleware
+func (siw *ServerInterfaceWrapper) CloneEvent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CloneEvent(w, r, organizationId, eventId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PublishEvent operation middleware
+func (siw *ServerInterfaceWrapper) PublishEvent(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PublishEventParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PublishEvent(w, r, organizationId, eventId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSessions operation middleware
+func (siw *ServerInterfaceWrapper) ListSessions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSessionsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSessions(w, r, organizationId, eventId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSession operation middleware
+func (siw *ServerInterfaceWrapper) CreateSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSession(w, r, organizationId, eventId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSession operation middleware
+func (siw *ServerInterfaceWrapper) GetSession(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSession(w, r, organizationId, eventId, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSessionChannelAllocations operation middleware
+func (siw *ServerInterfaceWrapper) ListSessionChannelAllocations(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSessionChannelAllocationsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSessionChannelAllocations(w, r, organizationId, eventId, sessionId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSessionChannelAllocation operation middleware
+func (siw *ServerInterfaceWrapper) CreateSessionChannelAllocation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSessionChannelAllocation(w, r, organizationId, eventId, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListPriceTiers operation middleware
+func (siw *ServerInterfaceWrapper) ListPriceTiers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListPriceTiersParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListPriceTiers(w, r, organizationId, eventId, sessionId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePriceTier operation middleware
+func (siw *ServerInterfaceWrapper) CreatePriceTier(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePriceTier(w, r, organizationId, eventId, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ValidateEventPublication operation middleware
+func (siw *ServerInterfaceWrapper) ValidateEventPublication(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "event_id" -------------
+	var eventId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "event_id", r.PathValue("event_id"), &eventId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "event_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ValidateEventPublication(w, r, organizationId, eventId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateInvitation operation middleware
+func (siw *ServerInterfaceWrapper) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateInvitation(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeInvitation operation middleware
+func (siw *ServerInterfaceWrapper) RevokeInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "invitation_id" -------------
+	var invitationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "invitation_id", r.PathValue("invitation_id"), &invitationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "invitation_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeInvitationParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeInvitation(w, r, organizationId, invitationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListMemberships operation middleware
+func (siw *ServerInterfaceWrapper) ListMemberships(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListMembershipsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListMemberships(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeMembership operation middleware
+func (siw *ServerInterfaceWrapper) RevokeMembership(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "membership_id" -------------
+	var membershipId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "membership_id", r.PathValue("membership_id"), &membershipId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "membership_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeMembershipParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeMembership(w, r, organizationId, membershipId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ChangeMembershipRole operation middleware
+func (siw *ServerInterfaceWrapper) ChangeMembershipRole(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "membership_id" -------------
+	var membershipId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "membership_id", r.PathValue("membership_id"), &membershipId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "membership_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ChangeMembershipRoleParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ChangeMembershipRole(w, r, organizationId, membershipId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSalesChannels operation middleware
+func (siw *ServerInterfaceWrapper) ListSalesChannels(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSalesChannelsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSalesChannels(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSalesChannel operation middleware
+func (siw *ServerInterfaceWrapper) CreateSalesChannel(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSalesChannel(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSessionAvailability operation middleware
+func (siw *ServerInterfaceWrapper) GetSessionAvailability(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSessionAvailability(w, r, organizationId, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSessionAvailabilityChanges operation middleware
+func (siw *ServerInterfaceWrapper) ListSessionAvailabilityChanges(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSessionAvailabilityChangesParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "after", r.URL.Query(), &params.After, runtime.BindQueryParameterOptions{Type: "integer", Format: "int64"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "after"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSessionAvailabilityChanges(w, r, organizationId, sessionId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListVenues operation middleware
+func (siw *ServerInterfaceWrapper) ListVenues(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListVenuesParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListVenues(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateVenue operation middleware
+func (siw *ServerInterfaceWrapper) CreateVenue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateVenue(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ArchiveVenue operation middleware
+func (siw *ServerInterfaceWrapper) ArchiveVenue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ArchiveVenueParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ArchiveVenue(w, r, organizationId, venueId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetVenue operation middleware
+func (siw *ServerInterfaceWrapper) GetVenue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetVenue(w, r, organizationId, venueId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateVenue operation middleware
+func (siw *ServerInterfaceWrapper) UpdateVenue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateVenueParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateVenue(w, r, organizationId, venueId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RestoreVenue operation middleware
+func (siw *ServerInterfaceWrapper) RestoreVenue(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RestoreVenueParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RestoreVenue(w, r, organizationId, venueId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGates operation middleware
+func (siw *ServerInterfaceWrapper) ListGates(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGatesParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGates(w, r, organizationId, venueId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGate operation middleware
+func (siw *ServerInterfaceWrapper) CreateGate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGate(w, r, organizationId, venueId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGate operation middleware
+func (siw *ServerInterfaceWrapper) GetGate(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "gate_id" -------------
+	var gateId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "gate_id", r.PathValue("gate_id"), &gateId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "gate_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGate(w, r, organizationId, venueId, gateId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSpaces operation middleware
+func (siw *ServerInterfaceWrapper) ListSpaces(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSpacesParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSpaces(w, r, organizationId, venueId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSpace operation middleware
+func (siw *ServerInterfaceWrapper) CreateSpace(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSpace(w, r, organizationId, venueId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSpace operation middleware
+func (siw *ServerInterfaceWrapper) GetSpace(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSpace(w, r, organizationId, venueId, spaceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGAPools operation middleware
+func (siw *ServerInterfaceWrapper) ListGAPools(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListGAPoolsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGAPools(w, r, organizationId, venueId, spaceId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGAPool operation middleware
+func (siw *ServerInterfaceWrapper) CreateGAPool(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGAPool(w, r, organizationId, venueId, spaceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGAPool operation middleware
+func (siw *ServerInterfaceWrapper) GetGAPool(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "pool_id" -------------
+	var poolId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "pool_id", r.PathValue("pool_id"), &poolId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pool_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGAPool(w, r, organizationId, venueId, spaceId, poolId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSeatMaps operation middleware
+func (siw *ServerInterfaceWrapper) ListSeatMaps(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSeatMapsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSeatMaps(w, r, organizationId, venueId, spaceId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateSeatMap operation middleware
+func (siw *ServerInterfaceWrapper) CreateSeatMap(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateSeatMap(w, r, organizationId, venueId, spaceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSeatMap operation middleware
+func (siw *ServerInterfaceWrapper) GetSeatMap(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "seat_map_id" -------------
+	var seatMapId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "seat_map_id", r.PathValue("seat_map_id"), &seatMapId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "seat_map_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSeatMap(w, r, organizationId, venueId, spaceId, seatMapId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateSeatMap operation middleware
+func (siw *ServerInterfaceWrapper) UpdateSeatMap(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "seat_map_id" -------------
+	var seatMapId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "seat_map_id", r.PathValue("seat_map_id"), &seatMapId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "seat_map_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateSeatMapParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateSeatMap(w, r, organizationId, venueId, spaceId, seatMapId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CloneSeatMap operation middleware
+func (siw *ServerInterfaceWrapper) CloneSeatMap(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "seat_map_id" -------------
+	var seatMapId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "seat_map_id", r.PathValue("seat_map_id"), &seatMapId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "seat_map_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CloneSeatMap(w, r, organizationId, venueId, spaceId, seatMapId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PublishSeatMap operation middleware
+func (siw *ServerInterfaceWrapper) PublishSeatMap(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "venue_id" -------------
+	var venueId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "venue_id", r.PathValue("venue_id"), &venueId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "venue_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "space_id" -------------
+	var spaceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "space_id", r.PathValue("space_id"), &spaceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "space_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "seat_map_id" -------------
+	var seatMapId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "seat_map_id", r.PathValue("seat_map_id"), &seatMapId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "seat_map_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params PublishSeatMapParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PublishSeatMap(w, r, organizationId, venueId, spaceId, seatMapId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -346,6 +4011,53 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/users", wrapper.ListUsers)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/users", wrapper.CreateUser)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/users/{id}", wrapper.GetUser)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations", wrapper.CreateOrganization)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}", wrapper.GetOrganization)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/memberships", wrapper.ListMemberships)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/invitations", wrapper.CreateInvitation)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events", wrapper.ListEvents)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events", wrapper.CreateEvent)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}", wrapper.GetEvent)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}", wrapper.UpdateEvent)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}", wrapper.CloneEvent)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/publish", wrapper.PublishEvent)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/validate-publication", wrapper.ValidateEventPublication)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions", wrapper.ListSessions)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions", wrapper.CreateSession)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}", wrapper.GetSession)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/sessions/{session_id}/availability", wrapper.GetSessionAvailability)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/sessions/{session_id}/availability/changes", wrapper.ListSessionAvailabilityChanges)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/price-tiers", wrapper.ListPriceTiers)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/price-tiers", wrapper.CreatePriceTier)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/channel-allocations", wrapper.ListSessionChannelAllocations)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/channel-allocations", wrapper.CreateSessionChannelAllocation)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/sales-channels", wrapper.ListSalesChannels)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/sales-channels", wrapper.CreateSalesChannel)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues", wrapper.ListVenues)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues", wrapper.CreateVenue)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}", wrapper.ArchiveVenue)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}", wrapper.GetVenue)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}", wrapper.UpdateVenue)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}", wrapper.RestoreVenue)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces", wrapper.ListSpaces)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces", wrapper.CreateSpace)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}", wrapper.GetSpace)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/gates", wrapper.ListGates)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/gates", wrapper.CreateGate)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/ga-pools", wrapper.ListGAPools)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/ga-pools", wrapper.CreateGAPool)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/ga-pools/{pool_id}", wrapper.GetGAPool)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps", wrapper.ListSeatMaps)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps", wrapper.CreateSeatMap)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id}", wrapper.GetSeatMap)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id}", wrapper.UpdateSeatMap)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id}", wrapper.CloneSeatMap)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/spaces/{space_id}/seat-maps/{seat_map_id}/publish", wrapper.PublishSeatMap)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/venues/{venue_id}/gates/{gate_id}", wrapper.GetGate)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/v1/organizations/{organization_id}/invitations/{invitation_id}", wrapper.RevokeInvitation)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/invitations/accept", wrapper.AcceptInvitation)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/v1/organizations/{organization_id}/memberships/{membership_id}", wrapper.RevokeMembership)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/v1/organizations/{organization_id}/memberships/{membership_id}", wrapper.ChangeMembershipRole)
 
 	return m
 }
@@ -355,27 +4067,111 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"xFhtb9s2EP4rBNdPm19kxxlWfcuabPOQoUG2DMUCz2DEk81WIhWS8uIa+u/DUa+26TbOvPZLK4tHPnfP",
-	"PXc8ZUMjlWZKgrSGhhu6BMZBu8dbeMzB2Okl/uBgIi0yK5SkIX2bsccciC4tSKS0hoThIhEcpBWxAD2g",
-	"PYoWQgOnodU59KiJlpAyPPCVhpiG9Jthiz8sV82wRm6OokVR4GEmU9KA8+5Gq4cEUnyMlLQgLT6yLEtE",
-	"5DwZvjfo6+aZmFdaK31bIZR42zFfEGPZQwLkT5A5vP2dXNxMCeAuUjuGEXcIfNevAulPLw/BV+bDluzC",
-	"YVdu4baLm6lzzsXHuUB/WHKjVQbaCjA0jFlioEezzitkhQP+n7Kna5ALu6Th95MezZi1oDGgv+9Z/+MM",
-	"/wn6r+ezb1/RHrXrDGhIjdVCLqjjwDKRuAOFhdQ8i8ZLtwm3p+xpWm47D5rTmdZs7VbBGLbY9fI8CDyO",
-	"VFqbC/4S9XSVeF9S08JvHT5rsNXDe4gsYr/RwCzcGTg2B5AiD+GGxkqnzNKwetPrxjs+n3jilSzdJWaE",
-	"xKRCNr/3tu3EWYO5s3yBdbP1NdQVC0j4bpTjHzyWz5fKp3N9kIWm9D/HAzyxNEucHdRlWbJBVywR3DWf",
-	"ecxEApx2Cui+MRPSGdImfhrlWoOM1h1HQ3pngDBi8ixT2gIntdGAFrOu3R/LthMLQ6rTB9uyDvHHPBj9",
-	"evXu4reb6yvH045Y62g+VVxNM9rTmnvro3e/Hj0J35Z1V0YX/b9KEQ3m/dl3Xhm9oDIjV9J8zuxWeXJm",
-	"oW9FCj6Yw9W8Zyr4ll2eC+4zq4t8byHP+JHu7aTD4W3Vf68b8xaCL2lI6bUw9khamzviWZeFy1uxfy8k",
-	"IhW2w4uQFhalqYpjA961XQKcA/VZzcb9WHGjkLHan3KmUljBEoLzhWaRJbHSxC7bCeCBRR9A8gHBEswN",
-	"aAKSZ0pIawjT4GytZtJU9BELaZYwC8QkIgLCJCf/iCQhsFLJCu21yhdLt4+rKE9BYuEL7Df4XE5YWjGe",
-	"sgwL3AqbAA1pZyShPboCbcoIRoNgEDjaMpAsEzSkZ4NgcEZdiS1dgnAESezyIz4vSmoxow5rymlIf6nW",
-	"dwawcTDZpwyJyLSKwBjsRSwRq5NORXmaMr2mIX2zhOhDA4UwEoxxKhhqYHx9OJ7bcvm54RjQK0xWxCTR",
-	"EIFYuaTGsYhOFVmPngdnh3Y0Xg7rkdfHBIcMJMfrgWD4omVjNRrmpvLQyweW+Z2zQFVoloJ15vcbKpCE",
-	"xxz0uu4iYVNQ7VjNIWZ5Ymk4DnptrxLSno3LSUekedqOL9WvnqeC/YhV6XohvYg1RuDBmO3lPTjZN0TT",
-	"NL2fDxlbAFGxaxTmdNKZBMGhHR7poNSCl0oNYyvdx4MyZTxq6szKzQDyo+Lrk5HcASiKYvcTs9hL7+ik",
-	"6fWlFt+T6nLdyeu1KpG2Qdq5QIu+hhhwrvPf6V9QGJPg9XH2o7Mj7c+Psx+Pv5SwS00R5sS93TaHG8GL",
-	"g73zZ7CV1H2dE+/Yto25kezwH0Q+Myz+743Lp+zOpwVwR87X61uTYHKU/X+Qw09go2WrBlwDvapTm+uE",
-	"hnRIi1nx7wA=",
+	"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",
+	"iL8BvU9Qu6KBe+FO3Mfbx/8fAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

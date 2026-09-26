@@ -18,8 +18,29 @@ injectable UTC clocks, application error codes, and bounded validation details.
 The initial organization, audit, outbox, inbox, idempotency, and durable job schema
 is implemented with an append-only audit trail, bounded transaction retry, atomic
 platform record repositories, and a lease-safe worker with bounded retry,
-dead-letter recovery, tracing, and Prometheus queue metrics. Business domains are
-otherwise still planned. The current example
+dead-letter recovery, tracing, and Prometheus queue metrics. The PostgreSQL outbox
+relay now has bounded claim leases, owner-checked acknowledgements, retry/backoff,
+and dead-letter transitions; concrete consumer/provider wiring remains domain-specific.
+Provider-neutral typed
+principal and verified organization authorization contexts are available for the
+first protected domain slice, and the venue/space catalog now has tenant-scoped
+migrations, repositories, immutable assigned-seat-map and event revisions,
+tenant-linked session scheduling, session price-tier foundations, routes, and
+sales-channel foundations with audit/outbox behavior. The
+session allocation rows enforce tenant linkage, unique scopes, and serialized hard
+capacity limits, and publication validation reports expose actionable catalog
+blockers, with publish now failing closed when that report is invalid. PostgreSQL
+now materializes session GA pools and assigned seats, supports atomic GA and
+reserved-seat holds/releases, database-time expiry, version-checked renewal and
+hold modification, repeatable-read availability snapshot/replay readers, and
+recurring expiry scheduling with atomic audit/outbox/realtime records. Provider-neutral
+OIDC verifier contracts and tenant-scoped API-key issuance/authentication/revocation
+and immediate rotation are also implemented; production OIDC wiring remains
+provider-dependent.
+Authenticated tenant-scoped staff snapshot/replay routes are wired; public
+storefront tenant resolution remains intentionally open.
+The
+current example
 `user` API proves the HTTP, OpenAPI, SQLC, database, test, and generation pipeline;
 it is transitional and will be replaced by the organization/access vertical slice.
 
@@ -89,6 +110,7 @@ cmd/api/                     HTTP API composition root
 cmd/worker/                  Background worker composition root
 cmd/migrate/                 Explicit migration command
 internal/config/             Typed process configuration
+internal/access/             Tenant authorization, API keys, and OIDC verifier port
 internal/database/           PostgreSQL pool construction
 internal/httpapi/            HTTP adapter and generated contract
 internal/logging/            Structured logging policy

@@ -20,7 +20,7 @@ CREATE TABLE organizations (
         AND slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'
     ),
     CONSTRAINT ck_organizations_display_name CHECK (
-        char_length(btrim(display_name)) BETWEEN 1 AND 200
+        char_length(btrim(display_name)) BETWEEN 1 AND 120
     ),
     CONSTRAINT ck_organizations_status CHECK (status IN ('active', 'suspended', 'closed')),
     CONSTRAINT ck_organizations_default_locale CHECK (
@@ -41,7 +41,7 @@ CREATE INDEX ix_organizations_status_created_id
 
 CREATE TABLE idempotency_records (
     id uuid PRIMARY KEY,
-    organization_id uuid NOT NULL,
+    organization_id uuid,
     principal_type text NOT NULL,
     principal_id text NOT NULL,
     operation text NOT NULL,
@@ -58,9 +58,12 @@ CREATE TABLE idempotency_records (
     updated_at timestamptz NOT NULL DEFAULT now(),
     CONSTRAINT fk_idempotency_records_organization FOREIGN KEY (organization_id)
         REFERENCES organizations (id) ON DELETE RESTRICT,
-    CONSTRAINT uq_idempotency_records_scope_key UNIQUE (
+    CONSTRAINT uq_idempotency_records_scope_key UNIQUE NULLS NOT DISTINCT (
         organization_id, principal_type, principal_id, operation, idempotency_key
     ),
+	CONSTRAINT ck_idempotency_records_scope CHECK (
+		organization_id IS NOT NULL OR principal_type = 'platform'
+	),
     CONSTRAINT ck_idempotency_records_principal_type CHECK (
         principal_type ~ '^[a-z][a-z0-9_]{0,63}$'
     ),
@@ -232,7 +235,7 @@ CREATE TABLE audit_entries (
     CONSTRAINT fk_audit_entries_organization FOREIGN KEY (organization_id)
         REFERENCES organizations (id) ON DELETE RESTRICT,
     CONSTRAINT ck_audit_entries_actor_type CHECK (
-        actor_type IN ('user', 'api_key', 'device', 'support', 'system')
+        actor_type IN ('user', 'api_key', 'device', 'platform', 'support', 'system')
     ),
     CONSTRAINT ck_audit_entries_actor_id CHECK (
         (actor_type = 'system' AND actor_id IS NULL)

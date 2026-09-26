@@ -14,6 +14,63 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const claimDueJobSchedule = `-- name: ClaimDueJobSchedule :one
+WITH due AS (
+    SELECT schedule_key, next_run_at AS due_at
+    FROM job_schedules
+    WHERE enabled = true AND next_run_at <= $1
+    ORDER BY next_run_at ASC, schedule_key ASC
+    LIMIT 1
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE job_schedules AS schedule
+SET next_run_at = GREATEST(
+        schedule.next_run_at + make_interval(secs => schedule.interval_seconds),
+        $1 + make_interval(secs => schedule.interval_seconds)
+    ),
+    updated_at = $1
+FROM due
+WHERE schedule.schedule_key = due.schedule_key
+RETURNING schedule.schedule_key, schedule.organization_id, schedule.job_type, schedule.schema_version, schedule.priority, schedule.payload, schedule.interval_seconds, schedule.next_run_at, schedule.max_attempts, schedule.enabled, schedule.created_at, schedule.updated_at, due.due_at
+`
+
+type ClaimDueJobScheduleRow struct {
+	ScheduleKey     string      `json:"schedule_key"`
+	OrganizationID  pgtype.UUID `json:"organization_id"`
+	JobType         string      `json:"job_type"`
+	SchemaVersion   int32       `json:"schema_version"`
+	Priority        int16       `json:"priority"`
+	Payload         []byte      `json:"payload"`
+	IntervalSeconds int32       `json:"interval_seconds"`
+	NextRunAt       time.Time   `json:"next_run_at"`
+	MaxAttempts     int32       `json:"max_attempts"`
+	Enabled         bool        `json:"enabled"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+	DueAt           time.Time   `json:"due_at"`
+}
+
+func (q *Queries) ClaimDueJobSchedule(ctx context.Context, now time.Time) (ClaimDueJobScheduleRow, error) {
+	row := q.db.QueryRow(ctx, claimDueJobSchedule, now)
+	var i ClaimDueJobScheduleRow
+	err := row.Scan(
+		&i.ScheduleKey,
+		&i.OrganizationID,
+		&i.JobType,
+		&i.SchemaVersion,
+		&i.Priority,
+		&i.Payload,
+		&i.IntervalSeconds,
+		&i.NextRunAt,
+		&i.MaxAttempts,
+		&i.Enabled,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DueAt,
+	)
+	return i, err
+}
+
 const claimJobs = `-- name: ClaimJobs :many
 WITH candidates AS (
     SELECT id
@@ -90,6 +147,89 @@ func (q *Queries) ClaimJobs(ctx context.Context, arg ClaimJobsParams) ([]Job, er
 	return items, nil
 }
 
+const claimOutboxEvents = `-- name: ClaimOutboxEvents :many
+WITH candidates AS (
+    SELECT source.id
+    FROM outbox_events AS source
+    WHERE (
+        (source.state = 'pending' AND source.available_at <= $2)
+        OR (source.state = 'leased' AND source.lease_expires_at <= $2)
+    )
+      AND source.attempt_count < $4
+    ORDER BY source.available_at ASC, source.occurred_at ASC, source.id ASC
+    LIMIT $5
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE outbox_events AS event
+SET state = 'leased',
+    attempt_count = event.attempt_count + 1,
+    lease_owner = $1,
+    lease_expires_at = $2 + make_interval(secs => $3),
+    published_at = NULL,
+    dead_lettered_at = NULL,
+    last_error_code = CASE WHEN event.state = 'leased' THEN 'lease_expired' ELSE event.last_error_code END,
+    last_error_message = CASE WHEN event.state = 'leased' THEN 'Previous relay lease expired.' ELSE event.last_error_message END
+FROM candidates
+WHERE event.id = candidates.id
+RETURNING event.id, event.organization_id, event.aggregate_type, event.aggregate_id, event.aggregate_version, event.event_type, event.schema_version, event.payload, event.correlation_id, event.causation_id, event.state, event.available_at, event.attempt_count, event.lease_owner, event.lease_expires_at, event.published_at, event.dead_lettered_at, event.last_error_code, event.last_error_message, event.occurred_at, event.created_at
+`
+
+type ClaimOutboxEventsParams struct {
+	LeaseOwner   pgtype.Text `json:"lease_owner"`
+	Now          interface{} `json:"now"`
+	LeaseSeconds float64     `json:"lease_seconds"`
+	MaxAttempts  int32       `json:"max_attempts"`
+	BatchSize    int32       `json:"batch_size"`
+}
+
+func (q *Queries) ClaimOutboxEvents(ctx context.Context, arg ClaimOutboxEventsParams) ([]OutboxEvent, error) {
+	rows, err := q.db.Query(ctx, claimOutboxEvents,
+		arg.LeaseOwner,
+		arg.Now,
+		arg.LeaseSeconds,
+		arg.MaxAttempts,
+		arg.BatchSize,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OutboxEvent{}
+	for rows.Next() {
+		var i OutboxEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrganizationID,
+			&i.AggregateType,
+			&i.AggregateID,
+			&i.AggregateVersion,
+			&i.EventType,
+			&i.SchemaVersion,
+			&i.Payload,
+			&i.CorrelationID,
+			&i.CausationID,
+			&i.State,
+			&i.AvailableAt,
+			&i.AttemptCount,
+			&i.LeaseOwner,
+			&i.LeaseExpiresAt,
+			&i.PublishedAt,
+			&i.DeadLetteredAt,
+			&i.LastErrorCode,
+			&i.LastErrorMessage,
+			&i.OccurredAt,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const completeIdempotencyRecord = `-- name: CompleteIdempotencyRecord :execrows
 UPDATE idempotency_records
 SET state = $3,
@@ -106,7 +246,7 @@ WHERE id = $1
 
 type CompleteIdempotencyRecordParams struct {
 	ID             uuid.UUID   `json:"id"`
-	OrganizationID uuid.UUID   `json:"organization_id"`
+	OrganizationID pgtype.UUID `json:"organization_id"`
 	State          string      `json:"state"`
 	ResponseStatus pgtype.Int2 `json:"response_status"`
 	ResponseBody   []byte      `json:"response_body"`
@@ -154,6 +294,32 @@ func (q *Queries) DeadLetterExhaustedLeases(ctx context.Context) (int64, error) 
 	return result.RowsAffected(), nil
 }
 
+const deadLetterExhaustedOutboxLeases = `-- name: DeadLetterExhaustedOutboxLeases :execrows
+UPDATE outbox_events
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    dead_lettered_at = $1,
+    last_error_code = 'lease_expired',
+    last_error_message = 'Outbox relay lease expired after the final attempt.'
+WHERE state = 'leased'
+  AND lease_expires_at <= $1
+  AND attempt_count >= $2
+`
+
+type DeadLetterExhaustedOutboxLeasesParams struct {
+	Now         pgtype.Timestamptz `json:"now"`
+	MaxAttempts int32              `json:"max_attempts"`
+}
+
+func (q *Queries) DeadLetterExhaustedOutboxLeases(ctx context.Context, arg DeadLetterExhaustedOutboxLeasesParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deadLetterExhaustedOutboxLeases, arg.Now, arg.MaxAttempts)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deadLetterJob = `-- name: DeadLetterJob :execrows
 UPDATE jobs
 SET state = 'dead_letter',
@@ -182,6 +348,96 @@ func (q *Queries) DeadLetterJob(ctx context.Context, arg DeadLetterJobParams) (i
 		arg.ID,
 		arg.LeaseOwner,
 	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deadLetterOutboxEvent = `-- name: DeadLetterOutboxEvent :execrows
+UPDATE outbox_events
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    dead_lettered_at = $1,
+    last_error_code = $2,
+    last_error_message = $3
+WHERE id = $4
+  AND state = 'leased'
+  AND lease_owner = $5
+`
+
+type DeadLetterOutboxEventParams struct {
+	DeadLetteredAt pgtype.Timestamptz `json:"dead_lettered_at"`
+	ErrorCode      pgtype.Text        `json:"error_code"`
+	ErrorMessage   pgtype.Text        `json:"error_message"`
+	ID             uuid.UUID          `json:"id"`
+	LeaseOwner     pgtype.Text        `json:"lease_owner"`
+}
+
+func (q *Queries) DeadLetterOutboxEvent(ctx context.Context, arg DeadLetterOutboxEventParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deadLetterOutboxEvent,
+		arg.DeadLetteredAt,
+		arg.ErrorCode,
+		arg.ErrorMessage,
+		arg.ID,
+		arg.LeaseOwner,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteExpiredIdempotencyRecords = `-- name: DeleteExpiredIdempotencyRecords :execrows
+WITH expired AS (
+    SELECT source.id
+    FROM idempotency_records AS source
+    WHERE source.expires_at <= $1
+      AND (
+          source.state <> 'processing'
+          OR source.locked_until IS NULL
+          OR source.locked_until <= $1
+      )
+    ORDER BY source.expires_at ASC, source.id ASC
+    LIMIT $2
+    FOR UPDATE SKIP LOCKED
+)
+DELETE FROM idempotency_records AS records
+USING expired
+WHERE records.id = expired.id
+`
+
+type DeleteExpiredIdempotencyRecordsParams struct {
+	Now        time.Time `json:"now"`
+	BatchLimit int32     `json:"batch_limit"`
+}
+
+func (q *Queries) DeleteExpiredIdempotencyRecords(ctx context.Context, arg DeleteExpiredIdempotencyRecordsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteExpiredIdempotencyRecords, arg.Now, arg.BatchLimit)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteExpiredRealtimeEvents = `-- name: DeleteExpiredRealtimeEvents :execrows
+WITH expired AS (
+    SELECT organization_id, id
+    FROM realtime_events
+    WHERE retention_expires_at <= now()
+    ORDER BY retention_expires_at ASC, id ASC
+    LIMIT $1
+    FOR UPDATE SKIP LOCKED
+)
+DELETE FROM realtime_events AS events
+USING expired
+WHERE events.organization_id = expired.organization_id
+  AND events.id = expired.id
+`
+
+func (q *Queries) DeleteExpiredRealtimeEvents(ctx context.Context, batchLimit int32) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteExpiredRealtimeEvents, batchLimit)
 	if err != nil {
 		return 0, err
 	}
@@ -240,6 +496,53 @@ func (q *Queries) EnqueueJob(ctx context.Context, arg EnqueueJobParams) (int64, 
 	return result.RowsAffected(), nil
 }
 
+const ensureJobSchedule = `-- name: EnsureJobSchedule :exec
+INSERT INTO job_schedules (
+    schedule_key, organization_id, job_type, schema_version, priority, payload,
+    interval_seconds, next_run_at, max_attempts, enabled, created_at, updated_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, $10, $10)
+ON CONFLICT (schedule_key)
+DO UPDATE SET
+    organization_id = EXCLUDED.organization_id,
+    job_type = EXCLUDED.job_type,
+    schema_version = EXCLUDED.schema_version,
+    priority = EXCLUDED.priority,
+    payload = EXCLUDED.payload,
+    interval_seconds = EXCLUDED.interval_seconds,
+    max_attempts = EXCLUDED.max_attempts,
+    enabled = true,
+    updated_at = EXCLUDED.updated_at
+`
+
+type EnsureJobScheduleParams struct {
+	ScheduleKey     string      `json:"schedule_key"`
+	OrganizationID  pgtype.UUID `json:"organization_id"`
+	JobType         string      `json:"job_type"`
+	SchemaVersion   int32       `json:"schema_version"`
+	Priority        int16       `json:"priority"`
+	Payload         []byte      `json:"payload"`
+	IntervalSeconds int32       `json:"interval_seconds"`
+	NextRunAt       time.Time   `json:"next_run_at"`
+	MaxAttempts     int32       `json:"max_attempts"`
+	CreatedAt       time.Time   `json:"created_at"`
+}
+
+func (q *Queries) EnsureJobSchedule(ctx context.Context, arg EnsureJobScheduleParams) error {
+	_, err := q.db.Exec(ctx, ensureJobSchedule,
+		arg.ScheduleKey,
+		arg.OrganizationID,
+		arg.JobType,
+		arg.SchemaVersion,
+		arg.Priority,
+		arg.Payload,
+		arg.IntervalSeconds,
+		arg.NextRunAt,
+		arg.MaxAttempts,
+		arg.CreatedAt,
+	)
+	return err
+}
+
 const extendJobLease = `-- name: ExtendJobLease :execrows
 UPDATE jobs
 SET lease_expires_at = now() + make_interval(secs => $1),
@@ -279,11 +582,11 @@ FOR UPDATE
 `
 
 type GetIdempotencyRecordForUpdateParams struct {
-	OrganizationID uuid.UUID `json:"organization_id"`
-	PrincipalType  string    `json:"principal_type"`
-	PrincipalID    string    `json:"principal_id"`
-	Operation      string    `json:"operation"`
-	IdempotencyKey string    `json:"idempotency_key"`
+	OrganizationID pgtype.UUID `json:"organization_id"`
+	PrincipalType  string      `json:"principal_type"`
+	PrincipalID    string      `json:"principal_id"`
+	Operation      string      `json:"operation"`
+	IdempotencyKey string      `json:"idempotency_key"`
 }
 
 func (q *Queries) GetIdempotencyRecordForUpdate(ctx context.Context, arg GetIdempotencyRecordForUpdateParams) (IdempotencyRecord, error) {
@@ -429,7 +732,7 @@ DO NOTHING
 
 type InsertIdempotencyRecordParams struct {
 	ID                 uuid.UUID          `json:"id"`
-	OrganizationID     uuid.UUID          `json:"organization_id"`
+	OrganizationID     pgtype.UUID        `json:"organization_id"`
 	PrincipalType      string             `json:"principal_type"`
 	PrincipalID        string             `json:"principal_id"`
 	Operation          string             `json:"operation"`
@@ -504,6 +807,69 @@ func (q *Queries) InsertOutboxEvent(ctx context.Context, arg InsertOutboxEventPa
 	return err
 }
 
+const insertRealtimeEvent = `-- name: InsertRealtimeEvent :exec
+INSERT INTO realtime_events (
+    id, organization_id, session_id, topic, sequence, event_type,
+    schema_version, payload, occurred_at, retention_expires_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+`
+
+type InsertRealtimeEventParams struct {
+	ID                 uuid.UUID `json:"id"`
+	OrganizationID     uuid.UUID `json:"organization_id"`
+	SessionID          uuid.UUID `json:"session_id"`
+	Topic              string    `json:"topic"`
+	Sequence           int64     `json:"sequence"`
+	EventType          string    `json:"event_type"`
+	SchemaVersion      int32     `json:"schema_version"`
+	Payload            []byte    `json:"payload"`
+	OccurredAt         time.Time `json:"occurred_at"`
+	RetentionExpiresAt time.Time `json:"retention_expires_at"`
+}
+
+func (q *Queries) InsertRealtimeEvent(ctx context.Context, arg InsertRealtimeEventParams) error {
+	_, err := q.db.Exec(ctx, insertRealtimeEvent,
+		arg.ID,
+		arg.OrganizationID,
+		arg.SessionID,
+		arg.Topic,
+		arg.Sequence,
+		arg.EventType,
+		arg.SchemaVersion,
+		arg.Payload,
+		arg.OccurredAt,
+		arg.RetentionExpiresAt,
+	)
+	return err
+}
+
+const markOutboxPublished = `-- name: MarkOutboxPublished :execrows
+UPDATE outbox_events
+SET state = 'published',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    published_at = $1,
+    last_error_code = NULL,
+    last_error_message = NULL
+WHERE id = $2
+  AND state = 'leased'
+  AND lease_owner = $3
+`
+
+type MarkOutboxPublishedParams struct {
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	ID          uuid.UUID          `json:"id"`
+	LeaseOwner  pgtype.Text        `json:"lease_owner"`
+}
+
+func (q *Queries) MarkOutboxPublished(ctx context.Context, arg MarkOutboxPublishedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markOutboxPublished, arg.PublishedAt, arg.ID, arg.LeaseOwner)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const retryJob = `-- name: RetryJob :execrows
 UPDATE jobs
 SET state = 'retry_wait',
@@ -531,6 +897,41 @@ func (q *Queries) RetryJob(ctx context.Context, arg RetryJobParams) (int64, erro
 	result, err := q.db.Exec(ctx, retryJob,
 		arg.DelayMilliseconds,
 		arg.ErrorClass,
+		arg.ErrorMessage,
+		arg.ID,
+		arg.LeaseOwner,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const retryOutboxEvent = `-- name: RetryOutboxEvent :execrows
+UPDATE outbox_events
+SET state = 'pending',
+    available_at = $1,
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    last_error_code = $2,
+    last_error_message = $3
+WHERE id = $4
+  AND state = 'leased'
+  AND lease_owner = $5
+`
+
+type RetryOutboxEventParams struct {
+	AvailableAt  time.Time   `json:"available_at"`
+	ErrorCode    pgtype.Text `json:"error_code"`
+	ErrorMessage pgtype.Text `json:"error_message"`
+	ID           uuid.UUID   `json:"id"`
+	LeaseOwner   pgtype.Text `json:"lease_owner"`
+}
+
+func (q *Queries) RetryOutboxEvent(ctx context.Context, arg RetryOutboxEventParams) (int64, error) {
+	result, err := q.db.Exec(ctx, retryOutboxEvent,
+		arg.AvailableAt,
+		arg.ErrorCode,
 		arg.ErrorMessage,
 		arg.ID,
 		arg.LeaseOwner,

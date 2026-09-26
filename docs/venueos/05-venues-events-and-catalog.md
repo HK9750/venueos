@@ -41,6 +41,11 @@ A seat map consists of a version header and structural elements:
 Geometry is not inventory state. A seat receives session-specific inventory only
 when a session is materialized from a published map version.
 
+General-admission sessions materialize one durable session pool for every active
+pool template in the space. The copied physical and sellable capacities become the
+session's inventory authority; later template edits do not change an existing
+session.
+
 ### Version Lifecycle
 
 `draft -> validating -> published -> retired`
@@ -146,6 +151,12 @@ Pricing requirements:
 - customer-visible price presentation must match final checkout except for clearly
   disclosed variable components.
 
+Implementation status: the current catalog slice provides tenant-scoped draft price
+tiers for sessions, integer minor-unit amounts, one-currency enforcement per session,
+quantity bounds, sales-window validation, cursor listing, and atomic audit/outbox
+records. Seat/category applicability, channels, tax/fee rules, publication validation,
+and checkout snapshots remain later slices.
+
 ## Channels and Allocations
 
 Channels include public storefront, organization box office, partner allocation,
@@ -156,6 +167,20 @@ a soft policy; the choice is explicit per channel.
 The sum of hard allocations plus unallocated reserved amount cannot exceed physical
 inventory. Rebalancing cannot remove already held/sold inventory. Channel identity
 is persisted on hold, order, and reporting records.
+
+Implementation status: tenant-scoped channel identities are now available for public,
+box-office, partner, and private-link types, with bounded configuration, lifecycle
+status, cursor listing, and atomic audit/outbox records. Session allocation rows now
+enforce tenant linkage, unique scopes, and serialized hard-capacity limits;
+publication validation now checks materialized inventory capacity and hard
+allocation overflow; a stale-safe publication transaction is still pending.
+
+Publication validation is available as an authorization-protected report endpoint.
+It currently checks event state, venue/space lifecycle, assigned-seat map
+publication, session price-tier presence, materialized sellable capacity, and hard
+allocation overflow. The event publish command now invokes this report as a
+fail-closed precondition; an atomic capacity check is still needed before
+publication can be considered fully stale-safe.
 
 ## Publication
 
@@ -205,4 +230,3 @@ payload sufficient for consumers.
 - Historical order resolution after archive or new map/price revision.
 - Media upload authorization, malicious type/size, missing object, and cross-tenant
   key substitution.
-

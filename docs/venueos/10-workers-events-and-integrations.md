@@ -76,8 +76,21 @@ allowing probes and separate provider/tenant isolation.
 | `retention.purge` | daily | Delete/anonymize eligible data with counts/audit |
 | `keys.rotate` | scheduled/manual | Prepare/re-sign where necessary and retire only after safe overlap |
 
+The inventory repository already provides the bounded, idempotent database
+transaction used by `holds.expire`: due active holds are locked with
+`SKIP LOCKED`, their GA counters are released, the session revision advances, and
+`hold.expired` audit/outbox records commit with the state change. The API worker now
+registers the `holds.expire` handler and claims one PostgreSQL schedule row per
+bounded tick; schedule advancement and job enqueue happen in one transaction.
+
 Scheduler leadership uses PostgreSQL advisory lock or deduplicated schedule rows.
 Every scheduled action remains safe if two schedulers briefly overlap.
+
+The worker schedules invitation expiry, hold expiry, bounded pruning of expired
+realtime replay rows, and idempotency-record retention. Both prune jobs use short
+`SKIP LOCKED` batches; idempotency pruning leaves an actively leased processing
+record untouched and neither job contends with availability readers for the whole
+table.
 
 ## Domain Event Envelope
 
@@ -121,6 +134,13 @@ Outbox rows are inserted in the business transaction. Relay claims unpublished r
 publishes to internal consumers/Redis or materializes jobs, and marks completion.
 Crash between publish and mark causes duplicate delivery, so consumers deduplicate.
 Rows exceeding attempts enter dead-letter state with alert and operator replay.
+
+The PostgreSQL relay foundation in `internal/platform/outbox` now performs bounded
+claiming with expiring owner leases, owner-checked publish/retry/dead-letter
+transitions, exponential backoff with jitter, safe failure messages, and a sweep
+for exhausted leases. Wiring each domain event to a concrete internal consumer,
+Redis fan-out, or provider adapter remains domain-specific and must preserve
+consumer idempotency.
 
 Publication order is guaranteed only per aggregate version where required. A
 consumer encountering a future version may reload current state or delay; it must

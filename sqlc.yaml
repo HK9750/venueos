@@ -40,3 +40,223 @@ sql:
             go_type:
               import: time
               type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/organization/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/organization/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/membership/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/membership/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/invitation/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/invitation/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/venue/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/venue/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/event/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/event/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/session/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/session/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/pricing/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/pricing/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/channel/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/channel/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/publication/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/publication/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/inventory/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/inventory/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/access/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/access/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
