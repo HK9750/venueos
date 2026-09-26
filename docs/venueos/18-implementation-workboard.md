@@ -70,7 +70,7 @@ Status: `in_progress`.
 6. [x] Implement atomic audit/outbox/idempotency repository primitives.
 7. [x] Implement worker claim/lease/retry/dead-letter loop and operational metrics.
 8. [x] Add PostgreSQL outbox claim/lease/ack/retry/dead-letter relay mechanics with bounded safe failures.
-9. [ ] Add generated-code cleanliness and migration-from-empty CI checks.
+9. [x] Add generated-code cleanliness and migration-from-empty CI checks.
 
 Gate: a synthetic tenant-scoped command can commit mutation + audit + outbox +
 idempotency result once, replay safely, and be consumed by two competing workers.
