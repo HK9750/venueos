@@ -469,6 +469,63 @@ paths:
           $ref: "#/components/responses/Problem"
         "500":
           $ref: "#/components/responses/Problem"
+  /v1/organizations/{organization_id}/orders:
+    get:
+      operationId: ListStaffOrders
+      summary: List orders for staff operations
+      description: Returns a bounded tenant-scoped order page in deterministic newest-first order. Customer and guest order access use separate owner-token policies.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: organization_id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: limit
+          schema: {type: integer, format: int32, minimum: 1, maximum: 100, default: 50}
+        - in: query
+          name: cursor
+          schema: {type: string, minLength: 1, maxLength: 512}
+      responses:
+        "200":
+          description: A bounded tenant-scoped order page.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/OrderPage"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "401": {$ref: "#/components/responses/Problem"}
+        "403": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "422": {$ref: "#/components/responses/Problem"}
+        "500": {$ref: "#/components/responses/Problem"}
+  /v1/organizations/{organization_id}/orders/{order_id}:
+    get:
+      operationId: GetStaffOrder
+      summary: Get an order for staff operations
+      description: Returns tenant-scoped order totals and immutable line snapshots without exposing the owner token. This is a staff read; customer and guest access use separate owner-token policies.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: organization_id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: order_id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        "200":
+          description: Tenant-scoped order detail.
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Order"}
+        "400": {$ref: "#/components/responses/Problem"}
+        "401": {$ref: "#/components/responses/Problem"}
+        "403": {$ref: "#/components/responses/Problem"}
+        "404": {$ref: "#/components/responses/Problem"}
+        "500": {$ref: "#/components/responses/Problem"}
   /v1/organizations/{organization_id}/orders/{order_id}/refunds:
     post:
       operationId: CreateRefund
@@ -2531,6 +2588,113 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+    Order:
+      type: object
+      additionalProperties: false
+      required: [id, organization_id, cart_id, session_id, hold_id, order_number, currency, status, subtotal_minor, discount_minor, fees_minor, taxes_minor, total_minor, version, created_at, updated_at, lines]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization_id:
+          type: string
+          format: uuid
+        cart_id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        hold_id:
+          type: string
+          format: uuid
+        order_number:
+          type: string
+        currency:
+          type: string
+          pattern: "^[A-Z]{3}$"
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        subtotal_minor:
+          type: integer
+          format: int64
+          minimum: 0
+        discount_minor:
+          type: integer
+          format: int64
+          minimum: 0
+        fees_minor:
+          type: integer
+          format: int64
+          minimum: 0
+        taxes_minor:
+          type: integer
+          format: int64
+          minimum: 0
+        total_minor:
+          type: integer
+          format: int64
+          minimum: 0
+        owner_user_id:
+          type: string
+          format: uuid
+          nullable: true
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+        version:
+          type: integer
+          format: int64
+          minimum: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderLine"
+    OrderLine:
+      type: object
+      additionalProperties: false
+      required: [line_number, price_tier_id, quantity, unit_minor, subtotal_minor]
+      properties:
+        line_number:
+          type: integer
+          format: int32
+          minimum: 1
+        price_tier_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          format: int64
+          minimum: 1
+        unit_minor:
+          type: integer
+          format: int64
+          minimum: 0
+        subtotal_minor:
+          type: integer
+          format: int64
+          minimum: 0
+    OrderStatus:
+      type: string
+      enum: [draft, payment_pending, confirmed, payment_failed, cancelled, reconciliation_required, partially_refunded, refunded, fulfilment_issue]
+    OrderPage:
+      type: object
+      additionalProperties: false
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        page:
+          $ref: "#/components/schemas/CursorPage"
     Refund:
       type: object
       additionalProperties: false

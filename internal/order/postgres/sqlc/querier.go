@@ -12,9 +12,12 @@ import (
 type Querier interface {
 	GetDatabaseTime(ctx context.Context) (time.Time, error)
 	GetOrderForOwner(ctx context.Context, arg GetOrderForOwnerParams) (GetOrderForOwnerRow, error)
+	GetOrderForStaff(ctx context.Context, arg GetOrderForStaffParams) (GetOrderForStaffRow, error)
 	InsertOrder(ctx context.Context, arg InsertOrderParams) (InsertOrderRow, error)
 	InsertOrderLine(ctx context.Context, arg InsertOrderLineParams) error
 	ListOrderLines(ctx context.Context, arg ListOrderLinesParams) ([]OrderLine, error)
+	ListOrdersForStaff(ctx context.Context, arg ListOrdersForStaffParams) ([]ListOrdersForStaffRow, error)
+	ListOrdersForStaffAfter(ctx context.Context, arg ListOrdersForStaffAfterParams) ([]ListOrdersForStaffAfterRow, error)
 	LockCartForCheckout(ctx context.Context, arg LockCartForCheckoutParams) (LockCartForCheckoutRow, error)
 	LockHoldForCheckout(ctx context.Context, arg LockHoldForCheckoutParams) (LockHoldForCheckoutRow, error)
 	MarkCartCheckedOut(ctx context.Context, arg MarkCartCheckedOutParams) (MarkCartCheckedOutRow, error)

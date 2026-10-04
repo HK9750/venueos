@@ -76,6 +76,8 @@ policy, concrete provider wiring, and reconciliation remain explicit
 application-layer work.
 The authenticated staff refund-request endpoint now persists this durable request
 with tenant/permission checks and safe same-key replay semantics.
+The staff order detail endpoint also exposes tenant-scoped immutable totals and
+line facts without returning owner-token material.
 Provider-neutral typed
 principal and verified organization authorization contexts are available for the
 first protected domain slice, and the venue/space catalog now has tenant-scoped

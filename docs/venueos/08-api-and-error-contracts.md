@@ -228,7 +228,16 @@ tenant-scoped payment attempt, positive integer minor amount, ISO currency, and
 bounded reason; `Idempotency-Key` is required. A successful response is a
 `requested` refund (`201`) and provider execution is asynchronous. A matching
 retry replays the existing refund, while a different request under the same
-order/key returns `409 idempotency_key_reused`.
+order/key returns `409 idempotency_key_reused`. The matching
+`GET /v1/organizations/{organization_id}/orders/{order_id}/refunds/{refund_id}`
+route returns the durable state and is tenant/order-bound; a guessed ID from
+another organization or order is undisclosable as `404`.
+
+`GET /v1/organizations/{organization_id}/orders` and
+`GET /v1/organizations/{organization_id}/orders/{order_id}` are the staff list
+and detail reads. They require `order.read`, use bounded deterministic cursors,
+derive organization scope from verified authorization, return immutable totals
+and line facts, and never serialize the owner token hash.
 
 The single online scan endpoint is optimized for low latency. Batch sync has a
 strict maximum item/byte count and per-item result, while authentication/manifest

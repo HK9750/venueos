@@ -31,6 +31,8 @@ import (
 	"github.com/HK9750/venueos/internal/membership"
 	membershippostgres "github.com/HK9750/venueos/internal/membership/postgres"
 	"github.com/HK9750/venueos/internal/observability"
+	"github.com/HK9750/venueos/internal/order"
+	orderpostgres "github.com/HK9750/venueos/internal/order/postgres"
 	"github.com/HK9750/venueos/internal/organization"
 	organizationpostgres "github.com/HK9750/venueos/internal/organization/postgres"
 	"github.com/HK9750/venueos/internal/platform/clock"
@@ -133,6 +135,8 @@ func run() error {
 	channelService := channel.NewService(channelRepository, clock.System{})
 	publicationRepository := publicationpostgres.New(pool, transactions)
 	publicationService := publication.NewService(publicationRepository, clock.System{})
+	orderRepository := orderpostgres.New(pool, transactions)
+	orderService := order.NewService(orderRepository)
 	refundRepository := refundpostgres.New(pool, transactions)
 	refundService := refund.NewService(refundRepository, clock.System{})
 	eventService.WithPublicationValidator(publicationService)
@@ -151,7 +155,8 @@ func run() error {
 		WithSalesChannels(channelService).
 		WithPublication(publicationService).
 		WithVenues(venueService).
-		WithRefunds(refundService)
+		WithRefunds(refundService).
+		WithOrders(orderService)
 	metrics := observability.NewMetrics()
 	if err := metrics.RegisterDatabasePool(pool); err != nil {
 		return err

@@ -149,8 +149,8 @@ verification, transactional online admission, and one-time scanner-device
 enrollment/lifecycle/assignment and credential authentication are implemented. The
 authorization-bound scan application service, durable public ticket-key resolution,
 authenticated HTTP scan route, idempotent entitlement-keyed ticket issuance
-transaction, strict `ticket.issue` payload, tenant-bound worker handler, and
-verified payment webhook receipt boundary are now in place; provider confirmation,
+transaction, strict `ticket.issue` payload, tenant-bound worker handler, verified
+payment webhook receipt boundary, and staff order list/detail reads are now in place; provider confirmation,
 worker/signer composition, delivery, private-key registration/rotation, offline
 scanning, and realtime fan-out remain.
 
@@ -158,8 +158,8 @@ scanning, and realtime fan-out remain.
    snapshot digest plus a durable one-session cart with owner/version checks;
    policy selection and checkout remain.
 2. [x] Add provider-neutral order/payment transition tables with idempotent
-   same-state replay and durable cart-to-order creation; guest/customer access
-   and confirmation remain.
+   same-state replay, durable cart-to-order creation, and tenant-scoped bounded
+   staff order list/detail reads; guest/customer access and confirmation remain.
 3. [x] Add provider-neutral payment intent/refund adapter and webhook-event
    contract with inbox-ready hash/failure handling plus durable payment-attempt
    constraints; Stripe wiring, capture policy, and order confirmation remain.
@@ -182,13 +182,13 @@ deployed-like environment, and every retry/race produces one logical outcome.
 ## Epic 6 — Operational Completion
 
 Status: `in_progress`; provider-neutral refund invariants, lifecycle guards,
-durable locked refund requests, authenticated refund-request transport, execution state transitions, strict
+durable locked refund requests, authenticated refund request/read transport, execution state transitions, strict
 `refund.execute` jobs, and bounded provider orchestration are implemented, while
 policy, concrete provider wiring, webhook/reconciliation convergence, offline
 scanning, promotions, and reporting remain.
 
 1. [x] Add provider-neutral refund amount ceilings, lifecycle guards, a locked
-   durable refund-request repository, authenticated idempotent refund-request
+   durable refund-request repository, authenticated idempotent refund request/read
    transport, and idempotent `refund.execute` orchestration with processing/final
    states; policy, concrete provider wiring, and reconciliation remain.
 2. Implement refund/cancellation/reconciliation, offline scanning, promotions,

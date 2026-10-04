@@ -90,6 +90,8 @@ type CreateFromCartRecord struct {
 type Repository interface {
 	CreateFromCart(context.Context, CreateFromCartRecord) (Order, error)
 	Get(context.Context, identifier.ID, identifier.ID, [32]byte) (Order, error)
+	GetStaff(context.Context, identifier.ID, identifier.ID) (Order, error)
+	ListStaff(context.Context, identifier.ID, int32, *Cursor) (Page, error)
 }
 
 // BuildFromCart validates and freezes a cart's quote without contacting a

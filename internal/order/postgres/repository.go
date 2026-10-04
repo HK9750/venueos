@@ -156,6 +156,92 @@ func (repository *Repository) Get(ctx context.Context, organizationID, orderID i
 	return mapStoredOrder(row, lines)
 }
 
+func (repository *Repository) GetStaff(ctx context.Context, organizationID, orderID identifier.ID) (order.Order, error) {
+	if organizationID.IsZero() || orderID.IsZero() {
+		return order.Order{}, order.ErrNotFound
+	}
+	row, err := repository.queries.GetOrderForStaff(ctx, sqlc.GetOrderForStaffParams{OrganizationID: organizationID.UUID(), ID: orderID.UUID()})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return order.Order{}, order.ErrNotFound
+	}
+	if err != nil {
+		return order.Order{}, fmt.Errorf("get staff order: %w", err)
+	}
+	lines, err := repository.queries.ListOrderLines(ctx, sqlc.ListOrderLinesParams{OrganizationID: organizationID.UUID(), OrderID: orderID.UUID()})
+	if err != nil {
+		return order.Order{}, fmt.Errorf("get staff order lines: %w", err)
+	}
+	return mapStoredStaffOrder(row, lines)
+}
+
+func (repository *Repository) ListStaff(ctx context.Context, organizationID identifier.ID, limit int32, after *order.Cursor) (order.Page, error) {
+	fetchLimit := limit + 1
+	page := order.Page{Items: make([]order.Order, 0, fetchLimit)}
+	if after == nil {
+		rows, err := repository.queries.ListOrdersForStaff(ctx, sqlc.ListOrdersForStaffParams{OrganizationID: organizationID.UUID(), Limit: fetchLimit})
+		if err != nil {
+			return order.Page{}, fmt.Errorf("list staff orders: %w", err)
+		}
+		for _, row := range rows {
+			value, mapErr := repository.mapStaffListRow(ctx, orderRowFromStaffList(row))
+			if mapErr != nil {
+				return order.Page{}, mapErr
+			}
+			page.Items = append(page.Items, value)
+		}
+	} else {
+		rows, err := repository.queries.ListOrdersForStaffAfter(ctx, sqlc.ListOrdersForStaffAfterParams{OrganizationID: organizationID.UUID(), CursorCreatedAt: after.CreatedAt.UTC(), CursorID: after.ID.UUID(), PageLimit: fetchLimit})
+		if err != nil {
+			return order.Page{}, fmt.Errorf("list staff orders after cursor: %w", err)
+		}
+		for _, row := range rows {
+			value, mapErr := repository.mapStaffListRow(ctx, orderRowFromStaffListAfter(row))
+			if mapErr != nil {
+				return order.Page{}, mapErr
+			}
+			page.Items = append(page.Items, value)
+		}
+	}
+	if len(page.Items) > int(limit) {
+		page.Items = page.Items[:limit]
+		last := page.Items[len(page.Items)-1]
+		page.NextCursor = &order.Cursor{OrganizationID: organizationID, CreatedAt: last.CreatedAt, ID: last.ID}
+	}
+	return page, nil
+}
+
+func (repository *Repository) mapStaffListRow(ctx context.Context, row orderRow) (order.Order, error) {
+	lines, err := repository.queries.ListOrderLines(ctx, sqlc.ListOrderLinesParams{OrganizationID: row.OrganizationID, OrderID: row.ID})
+	if err != nil {
+		return order.Order{}, fmt.Errorf("get staff order lines: %w", err)
+	}
+	lineValues, err := mapLineValues(lines)
+	if err != nil {
+		return order.Order{}, err
+	}
+	return mapOrderWithLines(row, lineValues)
+}
+
+func mapLineValues(rows []sqlc.OrderLine) ([]order.Line, error) {
+	values := make([]order.Line, 0, len(rows))
+	for _, row := range rows {
+		lineID, err := identifier.FromUUID(row.PriceTierID)
+		if err != nil {
+			return nil, fmt.Errorf("map staff order line price tier: %w", err)
+		}
+		values = append(values, order.Line{LineNumber: row.LineNumber, PriceTierID: lineID, Quantity: row.Quantity, UnitMinor: row.UnitMinor, SubtotalMinor: row.SubtotalMinor, Snapshot: append([]byte(nil), row.Snapshot...)})
+	}
+	return values, nil
+}
+
+func orderRowFromStaffList(row sqlc.ListOrdersForStaffRow) orderRow {
+	return orderRow{ID: row.ID, OrganizationID: row.OrganizationID, CartID: row.CartID, SessionID: row.SessionID, HoldID: row.HoldID, OrderNumber: row.OrderNumber, OwnerTokenHash: row.OwnerTokenHash, OwnerUserID: row.OwnerUserID, Currency: row.Currency, State: row.State, SubtotalMinor: row.SubtotalMinor, DiscountMinor: row.DiscountMinor, FeesMinor: row.FeesMinor, TaxesMinor: row.TaxesMinor, TotalMinor: row.TotalMinor, QuoteSnapshot: row.QuoteSnapshot, QuoteSnapshotRaw: row.QuoteSnapshotRaw, QuoteSha256: row.QuoteSha256, Version: row.Version, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, ConfirmedAt: row.ConfirmedAt}
+}
+
+func orderRowFromStaffListAfter(row sqlc.ListOrdersForStaffAfterRow) orderRow {
+	return orderRow{ID: row.ID, OrganizationID: row.OrganizationID, CartID: row.CartID, SessionID: row.SessionID, HoldID: row.HoldID, OrderNumber: row.OrderNumber, OwnerTokenHash: row.OwnerTokenHash, OwnerUserID: row.OwnerUserID, Currency: row.Currency, State: row.State, SubtotalMinor: row.SubtotalMinor, DiscountMinor: row.DiscountMinor, FeesMinor: row.FeesMinor, TaxesMinor: row.TaxesMinor, TotalMinor: row.TotalMinor, QuoteSnapshot: row.QuoteSnapshot, QuoteSnapshotRaw: row.QuoteSnapshotRaw, QuoteSha256: row.QuoteSha256, Version: row.Version, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, ConfirmedAt: row.ConfirmedAt}
+}
+
 func recordOrderMutation(ctx context.Context, platform *platformpostgres.Store, record order.CreateFromCartRecord, value order.Order) error {
 	after, err := json.Marshal(map[string]any{"order_id": value.ID.String(), "order_number": value.OrderNumber, "cart_id": value.CartID.String(), "hold_id": value.HoldID.String(), "session_id": value.SessionID.String(), "currency": value.Currency, "state": string(value.Status), "subtotal_minor": value.SubtotalMinor, "discount_minor": value.DiscountMinor, "fees_minor": value.FeesMinor, "taxes_minor": value.TaxesMinor, "total_minor": value.TotalMinor, "version": value.Version, "quote_sha256": hex.EncodeToString(value.QuoteSHA256[:])})
 	if err != nil {
@@ -213,6 +299,18 @@ func mapStoredOrder(row sqlc.GetOrderForOwnerRow, rows []sqlc.OrderLine) (order.
 		lineID, lineErr := identifier.FromUUID(value.PriceTierID)
 		if lineErr != nil {
 			return order.Order{}, fmt.Errorf("map order line price tier: %w", lineErr)
+		}
+		lineValues = append(lineValues, order.Line{LineNumber: value.LineNumber, PriceTierID: lineID, Quantity: value.Quantity, UnitMinor: value.UnitMinor, SubtotalMinor: value.SubtotalMinor, Snapshot: append([]byte(nil), value.Snapshot...)})
+	}
+	return mapOrderWithLines(orderRow{ID: row.ID, OrganizationID: row.OrganizationID, CartID: row.CartID, SessionID: row.SessionID, HoldID: row.HoldID, OrderNumber: row.OrderNumber, OwnerTokenHash: row.OwnerTokenHash, OwnerUserID: row.OwnerUserID, Currency: row.Currency, State: row.State, SubtotalMinor: row.SubtotalMinor, DiscountMinor: row.DiscountMinor, FeesMinor: row.FeesMinor, TaxesMinor: row.TaxesMinor, TotalMinor: row.TotalMinor, QuoteSnapshot: row.QuoteSnapshot, QuoteSnapshotRaw: row.QuoteSnapshotRaw, QuoteSha256: row.QuoteSha256, Version: row.Version, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt, ConfirmedAt: row.ConfirmedAt}, lineValues)
+}
+
+func mapStoredStaffOrder(row sqlc.GetOrderForStaffRow, rows []sqlc.OrderLine) (order.Order, error) {
+	lineValues := make([]order.Line, 0, len(rows))
+	for _, value := range rows {
+		lineID, lineErr := identifier.FromUUID(value.PriceTierID)
+		if lineErr != nil {
+			return order.Order{}, fmt.Errorf("map staff order line price tier: %w", lineErr)
 		}
 		lineValues = append(lineValues, order.Line{LineNumber: value.LineNumber, PriceTierID: lineID, Quantity: value.Quantity, UnitMinor: value.UnitMinor, SubtotalMinor: value.SubtotalMinor, Snapshot: append([]byte(nil), value.Snapshot...)})
 	}

@@ -26,6 +26,11 @@ type GetServiceInput struct {
 	OwnerTokenHash [32]byte
 }
 
+type GetStaffServiceInput struct {
+	OrganizationID identifier.ID
+	OrderID        identifier.ID
+}
+
 func NewService(repository Repository) *Service { return &Service{repository: repository} }
 
 // Create is the verified-principal checkout foundation. It persists the
@@ -73,6 +78,35 @@ func (service *Service) Get(ctx context.Context, input GetServiceInput) (Order, 
 	}
 	value, err := service.repository.Get(ctx, authorization.OrganizationID(), input.OrderID, input.OwnerTokenHash)
 	return value, mapError(err)
+}
+
+func (service *Service) GetStaff(ctx context.Context, input GetStaffServiceInput) (Order, error) {
+	authorization, err := service.requireOrganization(ctx, input.OrganizationID, access.PermissionOrderRead)
+	if err != nil {
+		return Order{}, err
+	}
+	if input.OrderID.IsZero() {
+		return Order{}, apperror.Wrap(ErrNotFound, apperror.CodeNotFound, "The requested order does not exist.")
+	}
+	value, err := service.repository.GetStaff(ctx, authorization.OrganizationID(), input.OrderID)
+	return value, mapError(err)
+}
+
+func (service *Service) ListStaff(ctx context.Context, organizationID identifier.ID, limit int32, after *Cursor) (Page, error) {
+	authorization, err := service.requireOrganization(ctx, organizationID, access.PermissionOrderRead)
+	if err != nil {
+		return Page{}, err
+	}
+	if limit == 0 {
+		limit = DefaultLimit
+	}
+	if limit < 1 || limit > MaxLimit {
+		return Page{}, apperror.New(apperror.CodeValidationFailed, "The order list request is invalid.", apperror.Detail{Field: "limit", Code: "out_of_range", Message: "Use a limit between 1 and 100."})
+	}
+	if after != nil && (after.OrganizationID != authorization.OrganizationID() || after.ID.IsZero() || after.CreatedAt.IsZero()) {
+		return Page{}, apperror.New(apperror.CodeInvalidCursor, "The order cursor is invalid.")
+	}
+	return service.repository.ListStaff(ctx, authorization.OrganizationID(), limit, after)
 }
 
 func (service *Service) requireOrganization(ctx context.Context, organizationID identifier.ID, permission access.Permission) (access.Authorization, error) {

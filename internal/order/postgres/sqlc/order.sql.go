@@ -96,6 +96,76 @@ func (q *Queries) GetOrderForOwner(ctx context.Context, arg GetOrderForOwnerPara
 	return i, err
 }
 
+const getOrderForStaff = `-- name: GetOrderForStaff :one
+SELECT id, organization_id, cart_id, session_id, hold_id, order_number,
+       owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+       discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+       quote_snapshot_raw, quote_sha256, version, created_at, updated_at, confirmed_at
+FROM orders
+WHERE organization_id = $1
+  AND id = $2
+`
+
+type GetOrderForStaffParams struct {
+	OrganizationID uuid.UUID `json:"organization_id"`
+	ID             uuid.UUID `json:"id"`
+}
+
+type GetOrderForStaffRow struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	CartID           uuid.UUID          `json:"cart_id"`
+	SessionID        uuid.UUID          `json:"session_id"`
+	HoldID           uuid.UUID          `json:"hold_id"`
+	OrderNumber      string             `json:"order_number"`
+	OwnerTokenHash   []byte             `json:"owner_token_hash"`
+	OwnerUserID      pgtype.UUID        `json:"owner_user_id"`
+	Currency         string             `json:"currency"`
+	State            string             `json:"state"`
+	SubtotalMinor    int64              `json:"subtotal_minor"`
+	DiscountMinor    int64              `json:"discount_minor"`
+	FeesMinor        int64              `json:"fees_minor"`
+	TaxesMinor       int64              `json:"taxes_minor"`
+	TotalMinor       int64              `json:"total_minor"`
+	QuoteSnapshot    []byte             `json:"quote_snapshot"`
+	QuoteSnapshotRaw []byte             `json:"quote_snapshot_raw"`
+	QuoteSha256      []byte             `json:"quote_sha256"`
+	Version          int64              `json:"version"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	ConfirmedAt      pgtype.Timestamptz `json:"confirmed_at"`
+}
+
+func (q *Queries) GetOrderForStaff(ctx context.Context, arg GetOrderForStaffParams) (GetOrderForStaffRow, error) {
+	row := q.db.QueryRow(ctx, getOrderForStaff, arg.OrganizationID, arg.ID)
+	var i GetOrderForStaffRow
+	err := row.Scan(
+		&i.ID,
+		&i.OrganizationID,
+		&i.CartID,
+		&i.SessionID,
+		&i.HoldID,
+		&i.OrderNumber,
+		&i.OwnerTokenHash,
+		&i.OwnerUserID,
+		&i.Currency,
+		&i.State,
+		&i.SubtotalMinor,
+		&i.DiscountMinor,
+		&i.FeesMinor,
+		&i.TaxesMinor,
+		&i.TotalMinor,
+		&i.QuoteSnapshot,
+		&i.QuoteSnapshotRaw,
+		&i.QuoteSha256,
+		&i.Version,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ConfirmedAt,
+	)
+	return i, err
+}
+
 const insertOrder = `-- name: InsertOrder :one
 INSERT INTO orders (
     id, organization_id, cart_id, session_id, hold_id, order_number,
@@ -278,6 +348,182 @@ func (q *Queries) ListOrderLines(ctx context.Context, arg ListOrderLinesParams) 
 			&i.SubtotalMinor,
 			&i.Snapshot,
 			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOrdersForStaff = `-- name: ListOrdersForStaff :many
+SELECT id, organization_id, cart_id, session_id, hold_id, order_number,
+       owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+       discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+       quote_snapshot_raw, quote_sha256, version, created_at, updated_at, confirmed_at
+FROM orders
+WHERE organization_id = $1
+ORDER BY created_at DESC, id DESC
+LIMIT $2
+`
+
+type ListOrdersForStaffParams struct {
+	OrganizationID uuid.UUID `json:"organization_id"`
+	Limit          int32     `json:"limit"`
+}
+
+type ListOrdersForStaffRow struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	CartID           uuid.UUID          `json:"cart_id"`
+	SessionID        uuid.UUID          `json:"session_id"`
+	HoldID           uuid.UUID          `json:"hold_id"`
+	OrderNumber      string             `json:"order_number"`
+	OwnerTokenHash   []byte             `json:"owner_token_hash"`
+	OwnerUserID      pgtype.UUID        `json:"owner_user_id"`
+	Currency         string             `json:"currency"`
+	State            string             `json:"state"`
+	SubtotalMinor    int64              `json:"subtotal_minor"`
+	DiscountMinor    int64              `json:"discount_minor"`
+	FeesMinor        int64              `json:"fees_minor"`
+	TaxesMinor       int64              `json:"taxes_minor"`
+	TotalMinor       int64              `json:"total_minor"`
+	QuoteSnapshot    []byte             `json:"quote_snapshot"`
+	QuoteSnapshotRaw []byte             `json:"quote_snapshot_raw"`
+	QuoteSha256      []byte             `json:"quote_sha256"`
+	Version          int64              `json:"version"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	ConfirmedAt      pgtype.Timestamptz `json:"confirmed_at"`
+}
+
+func (q *Queries) ListOrdersForStaff(ctx context.Context, arg ListOrdersForStaffParams) ([]ListOrdersForStaffRow, error) {
+	rows, err := q.db.Query(ctx, listOrdersForStaff, arg.OrganizationID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOrdersForStaffRow{}
+	for rows.Next() {
+		var i ListOrdersForStaffRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrganizationID,
+			&i.CartID,
+			&i.SessionID,
+			&i.HoldID,
+			&i.OrderNumber,
+			&i.OwnerTokenHash,
+			&i.OwnerUserID,
+			&i.Currency,
+			&i.State,
+			&i.SubtotalMinor,
+			&i.DiscountMinor,
+			&i.FeesMinor,
+			&i.TaxesMinor,
+			&i.TotalMinor,
+			&i.QuoteSnapshot,
+			&i.QuoteSnapshotRaw,
+			&i.QuoteSha256,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ConfirmedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOrdersForStaffAfter = `-- name: ListOrdersForStaffAfter :many
+SELECT id, organization_id, cart_id, session_id, hold_id, order_number,
+       owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+       discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+       quote_snapshot_raw, quote_sha256, version, created_at, updated_at, confirmed_at
+FROM orders
+WHERE organization_id = $1
+  AND (created_at, id) < ($2::timestamptz, $3::uuid)
+ORDER BY created_at DESC, id DESC
+LIMIT $4
+`
+
+type ListOrdersForStaffAfterParams struct {
+	OrganizationID  uuid.UUID `json:"organization_id"`
+	CursorCreatedAt time.Time `json:"cursor_created_at"`
+	CursorID        uuid.UUID `json:"cursor_id"`
+	PageLimit       int32     `json:"page_limit"`
+}
+
+type ListOrdersForStaffAfterRow struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	CartID           uuid.UUID          `json:"cart_id"`
+	SessionID        uuid.UUID          `json:"session_id"`
+	HoldID           uuid.UUID          `json:"hold_id"`
+	OrderNumber      string             `json:"order_number"`
+	OwnerTokenHash   []byte             `json:"owner_token_hash"`
+	OwnerUserID      pgtype.UUID        `json:"owner_user_id"`
+	Currency         string             `json:"currency"`
+	State            string             `json:"state"`
+	SubtotalMinor    int64              `json:"subtotal_minor"`
+	DiscountMinor    int64              `json:"discount_minor"`
+	FeesMinor        int64              `json:"fees_minor"`
+	TaxesMinor       int64              `json:"taxes_minor"`
+	TotalMinor       int64              `json:"total_minor"`
+	QuoteSnapshot    []byte             `json:"quote_snapshot"`
+	QuoteSnapshotRaw []byte             `json:"quote_snapshot_raw"`
+	QuoteSha256      []byte             `json:"quote_sha256"`
+	Version          int64              `json:"version"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	ConfirmedAt      pgtype.Timestamptz `json:"confirmed_at"`
+}
+
+func (q *Queries) ListOrdersForStaffAfter(ctx context.Context, arg ListOrdersForStaffAfterParams) ([]ListOrdersForStaffAfterRow, error) {
+	rows, err := q.db.Query(ctx, listOrdersForStaffAfter,
+		arg.OrganizationID,
+		arg.CursorCreatedAt,
+		arg.CursorID,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOrdersForStaffAfterRow{}
+	for rows.Next() {
+		var i ListOrdersForStaffAfterRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrganizationID,
+			&i.CartID,
+			&i.SessionID,
+			&i.HoldID,
+			&i.OrderNumber,
+			&i.OwnerTokenHash,
+			&i.OwnerUserID,
+			&i.Currency,
+			&i.State,
+			&i.SubtotalMinor,
+			&i.DiscountMinor,
+			&i.FeesMinor,
+			&i.TaxesMinor,
+			&i.TotalMinor,
+			&i.QuoteSnapshot,
+			&i.QuoteSnapshotRaw,
+			&i.QuoteSha256,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ConfirmedAt,
 		); err != nil {
 			return nil, err
 		}

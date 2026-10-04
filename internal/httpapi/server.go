@@ -22,6 +22,7 @@ import (
 	"github.com/HK9750/venueos/internal/inventory"
 	"github.com/HK9750/venueos/internal/invitation"
 	"github.com/HK9750/venueos/internal/membership"
+	"github.com/HK9750/venueos/internal/order"
 	"github.com/HK9750/venueos/internal/organization"
 	"github.com/HK9750/venueos/internal/platform/apperror"
 	"github.com/HK9750/venueos/internal/platform/identifier"
@@ -157,6 +158,11 @@ type VenueService interface {
 	CloneSeatMap(context.Context, venue.CloneSeatMapInput) (venue.SeatMap, error)
 }
 
+type OrderService interface {
+	GetStaff(context.Context, order.GetStaffServiceInput) (order.Order, error)
+	ListStaff(context.Context, identifier.ID, int32, *order.Cursor) (order.Page, error)
+}
+
 type RefundService interface {
 	Request(context.Context, refund.RequestInput) (refund.Refund, error)
 	Get(context.Context, refund.GetInput) (refund.Refund, error)
@@ -179,6 +185,7 @@ type Server struct {
 	publication   PublicationService
 	venues        VenueService
 	refunds       RefundService
+	orders        OrderService
 	readiness     Readiness
 	logger        *slog.Logger
 }
@@ -259,6 +266,11 @@ func (s *Server) WithVenues(service VenueService) *Server {
 
 func (s *Server) WithRefunds(service RefundService) *Server {
 	s.refunds = service
+	return s
+}
+
+func (s *Server) WithOrders(service OrderService) *Server {
+	s.orders = service
 	return s
 }
 
@@ -343,6 +355,72 @@ func (s *Server) GetRefund(w http.ResponseWriter, r *http.Request, organizationI
 		return
 	}
 	s.writeRefund(w, http.StatusOK, value)
+}
+
+func (s *Server) GetStaffOrder(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, orderID uuid.UUID) {
+	if s.orders == nil {
+		s.writeApplicationError(w, r, errors.New("order service is not configured"))
+		return
+	}
+	orgID, err := identifier.FromUUID(organizationID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The organization identifier is invalid.", nil)
+		return
+	}
+	targetOrderID, err := identifier.FromUUID(orderID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The order identifier is invalid.", nil)
+		return
+	}
+	value, err := s.orders.GetStaff(r.Context(), order.GetStaffServiceInput{OrganizationID: orgID, OrderID: targetOrderID})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, orderResponse(value))
+}
+
+func (s *Server) ListStaffOrders(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, params ListStaffOrdersParams) {
+	if s.orders == nil {
+		s.writeApplicationError(w, r, errors.New("order service is not configured"))
+		return
+	}
+	orgID, err := identifier.FromUUID(organizationID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The organization identifier is invalid.", nil)
+		return
+	}
+	limit := int32(50)
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+	var after *order.Cursor
+	if params.Cursor != nil {
+		decoded, decodeErr := order.DecodeCursor(*params.Cursor)
+		if decodeErr != nil {
+			s.writeApplicationError(w, r, decodeErr)
+			return
+		}
+		after = &decoded
+	}
+	page, err := s.orders.ListStaff(r.Context(), orgID, limit, after)
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	response := OrderPage{Items: make([]Order, 0, len(page.Items)), Page: CursorPage{HasMore: page.NextCursor != nil}}
+	for _, value := range page.Items {
+		response.Items = append(response.Items, orderResponse(value))
+	}
+	if page.NextCursor != nil {
+		cursor, encodeErr := order.EncodeCursor(*page.NextCursor)
+		if encodeErr != nil {
+			s.writeApplicationError(w, r, encodeErr)
+			return
+		}
+		response.Page.NextCursor = &cursor
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (s *Server) ListUsers(w http.ResponseWriter, r *http.Request, params ListUsersParams) {
@@ -2657,6 +2735,19 @@ func refundResponse(value refund.Refund) Refund {
 
 func (s *Server) writeRefund(w http.ResponseWriter, status int, value refund.Refund) {
 	writeJSON(w, status, refundResponse(value))
+}
+
+func orderResponse(value order.Order) Order {
+	var ownerUserID *openapi_types.UUID
+	if value.OwnerUserID != nil {
+		parsed := value.OwnerUserID.UUID()
+		ownerUserID = &parsed
+	}
+	lines := make([]OrderLine, 0, len(value.Lines))
+	for _, line := range value.Lines {
+		lines = append(lines, OrderLine{LineNumber: line.LineNumber, PriceTierId: line.PriceTierID.UUID(), Quantity: line.Quantity, UnitMinor: line.UnitMinor, SubtotalMinor: line.SubtotalMinor})
+	}
+	return Order{Id: value.ID.UUID(), OrganizationId: value.OrganizationID.UUID(), CartId: value.CartID.UUID(), SessionId: value.SessionID.UUID(), HoldId: value.HoldID.UUID(), OrderNumber: value.OrderNumber, Currency: value.Currency, Status: OrderStatus(value.Status), SubtotalMinor: value.SubtotalMinor, DiscountMinor: value.DiscountMinor, FeesMinor: value.FeesMinor, TaxesMinor: value.TaxesMinor, TotalMinor: value.TotalMinor, OwnerUserId: ownerUserID, ConfirmedAt: value.ConfirmedAt, Version: value.Version, CreatedAt: value.CreatedAt.UTC(), UpdatedAt: value.UpdatedAt.UTC(), Lines: lines}
 }
 
 func (s *Server) writeApplicationError(w http.ResponseWriter, r *http.Request, err error) {

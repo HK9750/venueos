@@ -57,6 +57,36 @@ WHERE organization_id = $1
   AND id = $2
   AND owner_token_hash = $3;
 
+-- name: GetOrderForStaff :one
+SELECT id, organization_id, cart_id, session_id, hold_id, order_number,
+       owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+       discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+       quote_snapshot_raw, quote_sha256, version, created_at, updated_at, confirmed_at
+FROM orders
+WHERE organization_id = $1
+  AND id = $2;
+
+-- name: ListOrdersForStaff :many
+SELECT id, organization_id, cart_id, session_id, hold_id, order_number,
+       owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+       discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+       quote_snapshot_raw, quote_sha256, version, created_at, updated_at, confirmed_at
+FROM orders
+WHERE organization_id = $1
+ORDER BY created_at DESC, id DESC
+LIMIT $2;
+
+-- name: ListOrdersForStaffAfter :many
+SELECT id, organization_id, cart_id, session_id, hold_id, order_number,
+       owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+       discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+       quote_snapshot_raw, quote_sha256, version, created_at, updated_at, confirmed_at
+FROM orders
+WHERE organization_id = $1
+  AND (created_at, id) < (sqlc.arg(cursor_created_at)::timestamptz, sqlc.arg(cursor_id)::uuid)
+ORDER BY created_at DESC, id DESC
+LIMIT sqlc.arg(page_limit);
+
 -- name: ListOrderLines :many
 SELECT id, organization_id, order_id, line_number, price_tier_id, quantity,
        unit_minor, subtotal_minor, snapshot, created_at
