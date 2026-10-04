@@ -539,6 +539,27 @@ func TestOrganizationErrorUsesStableEnvelope(t *testing.T) {
 	}
 }
 
+func TestAPIErrorMetricsUseStableCodeAndRoute(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	metrics := observability.NewMetrics()
+	server := NewServer(stubUsers{}, ready{}, logger)
+	handler := NewHandler(server, config.Telemetry{MetricsEnabled: true}, logger, metrics)
+	request := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/v1/organizations/not-a-uuid", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
+	}
+
+	admin := NewAdminHandler(config.Telemetry{MetricsEnabled: true}, logger, metrics)
+	metricsRequest := httptest.NewRequestWithContext(context.Background(), http.MethodGet, "/metrics", nil)
+	metricsRecorder := httptest.NewRecorder()
+	admin.ServeHTTP(metricsRecorder, metricsRequest)
+	if !strings.Contains(metricsRecorder.Body.String(), `service_http_errors_total{code="invalid_request",method="GET",route="GET /v1/organizations/{organization_id}"} 1`) {
+		t.Fatalf("stable API error metric missing: %s", metricsRecorder.Body.String())
+	}
+}
+
 func TestMembershipRoutesContract(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
 	organizationID := uuid.MustParse("33333333-3333-4333-8333-333333333333")
@@ -852,6 +873,16 @@ func TestAvailabilityRoutesContract(t *testing.T) {
 	handler.ServeHTTP(snapshotRecorder, snapshotRequest)
 	if snapshotRecorder.Code != http.StatusOK || !strings.Contains(snapshotRecorder.Body.String(), `"revision":3`) || !strings.Contains(snapshotRecorder.Body.String(), `"slug":"floor"`) {
 		t.Fatalf("availability snapshot status/body = %d/%s", snapshotRecorder.Code, snapshotRecorder.Body.String())
+	}
+	if snapshotRecorder.Header().Get("ETag") != `"24242424-2424-4242-8242-242424242424:3"` {
+		t.Fatalf("availability snapshot etag = %q", snapshotRecorder.Header().Get("ETag"))
+	}
+	conditionalRequest := httptest.NewRequestWithContext(context.Background(), http.MethodGet, base, nil)
+	conditionalRequest.Header.Set("If-None-Match", snapshotRecorder.Header().Get("ETag"))
+	conditionalRecorder := httptest.NewRecorder()
+	handler.ServeHTTP(conditionalRecorder, conditionalRequest)
+	if conditionalRecorder.Code != http.StatusNotModified || conditionalRecorder.Body.Len() != 0 || conditionalRecorder.Header().Get("ETag") != snapshotRecorder.Header().Get("ETag") {
+		t.Fatalf("conditional snapshot status/body/etag = %d/%s/%q", conditionalRecorder.Code, conditionalRecorder.Body.String(), conditionalRecorder.Header().Get("ETag"))
 	}
 	replayRequest := httptest.NewRequestWithContext(context.Background(), http.MethodGet, base+"/changes?after=2&limit=10", nil)
 	replayRecorder := httptest.NewRecorder()

@@ -2,14 +2,17 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/netip"
+	"strings"
 	"time"
 
 	"github.com/HK9750/venueos/internal/platform/identifier"
+	"github.com/HK9750/venueos/internal/platform/inbox"
 	"github.com/HK9750/venueos/internal/platform/jobqueue"
 	"github.com/HK9750/venueos/internal/platform/postgres/sqlc"
 	"github.com/jackc/pgx/v5"
@@ -80,6 +83,172 @@ func (store *Store) InsertAuditEntry(ctx context.Context, entry AuditEntry) erro
 		return fmt.Errorf("insert audit entry: %w", err)
 	}
 	return nil
+}
+
+func (store *Store) InsertInboxMessage(ctx context.Context, message inbox.Message) (bool, error) {
+	if err := inbox.ValidateMessage(message); err != nil {
+		return false, err
+	}
+	if strings.TrimSpace(message.PayloadReference) != message.PayloadReference || len(message.PayloadReference) > 1000 {
+		return false, fmt.Errorf("%w: payload reference is invalid", inbox.ErrInvalidMessage)
+	}
+	rows, err := store.queries.InsertInboxMessage(ctx, sqlc.InsertInboxMessageParams{
+		ID: message.ID.UUID(), OrganizationID: nullableUUID(message.OrganizationID), Source: message.Source,
+		MessageID: message.MessageID, PayloadReference: nullableText(message.PayloadReference),
+		PayloadSha256: message.PayloadSHA256[:], AvailableAt: message.AvailableAt.UTC(),
+		ReceivedAt: message.ReceivedAt.UTC(), UpdatedAt: message.UpdatedAt.UTC(),
+	})
+	if err != nil {
+		return false, fmt.Errorf("insert inbox message: %w", err)
+	}
+	if rows == 1 {
+		return true, nil
+	}
+	existing, err := store.queries.GetInboxMessageByKey(ctx, sqlc.GetInboxMessageByKeyParams{Source: message.Source, MessageID: message.MessageID})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, inbox.ErrNotFound
+	}
+	if err != nil {
+		return false, fmt.Errorf("get duplicate inbox message: %w", err)
+	}
+	if !bytes.Equal(existing.PayloadSha256, message.PayloadSHA256[:]) {
+		return false, inbox.ErrPayloadConflict
+	}
+	return false, nil
+}
+
+func (store *Store) ClaimInboxMessages(ctx context.Context, owner string, batchSize, maxAttempts int32, lease time.Duration, now time.Time) ([]inbox.Message, error) {
+	if owner == "" || len(owner) > 128 || batchSize < 1 || batchSize > 100 || maxAttempts < 1 || maxAttempts > 20 || lease <= 0 || now.IsZero() {
+		return nil, fmt.Errorf("%w: inbox owner, batch, attempts, lease, and time are required", inbox.ErrInvalidMessage)
+	}
+	rows, err := store.queries.ClaimInboxMessages(ctx, sqlc.ClaimInboxMessagesParams{
+		LeaseOwner: nullableText(owner), Now: now.UTC(), LeaseSeconds: lease.Seconds(), MaxAttempts: maxAttempts, BatchSize: batchSize,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("claim inbox messages: %w", err)
+	}
+	messages := make([]inbox.Message, 0, len(rows))
+	for _, row := range rows {
+		message, mapErr := mapInboxMessage(row)
+		if mapErr != nil {
+			return nil, mapErr
+		}
+		messages = append(messages, message)
+	}
+	return messages, nil
+}
+
+func (store *Store) MarkInboxMessageProcessed(ctx context.Context, id identifier.ID, owner string, processedAt time.Time) error {
+	if err := validateInboxLease(id, owner, processedAt); err != nil {
+		return err
+	}
+	rows, err := store.queries.MarkInboxMessageProcessed(ctx, sqlc.MarkInboxMessageProcessedParams{
+		ProcessedAt: pgtype.Timestamptz{Time: processedAt.UTC(), Valid: true}, ID: id.UUID(), LeaseOwner: nullableText(owner),
+	})
+	if err != nil {
+		return fmt.Errorf("mark inbox message processed: %w", err)
+	}
+	if rows != 1 {
+		return inbox.ErrLeaseLost
+	}
+	return nil
+}
+
+func (store *Store) RetryInboxMessage(ctx context.Context, id identifier.ID, owner string, availableAt time.Time, errorCode, errorMessage string) error {
+	if err := validateInboxFailure(id, owner, availableAt, errorCode, errorMessage); err != nil {
+		return err
+	}
+	rows, err := store.queries.RetryInboxMessage(ctx, sqlc.RetryInboxMessageParams{
+		AvailableAt: availableAt.UTC(), ErrorCode: nullableText(errorCode), ErrorMessage: nullableText(errorMessage), ID: id.UUID(), LeaseOwner: nullableText(owner),
+	})
+	if err != nil {
+		return fmt.Errorf("retry inbox message: %w", err)
+	}
+	if rows != 1 {
+		return inbox.ErrLeaseLost
+	}
+	return nil
+}
+
+func (store *Store) DeadLetterInboxMessage(ctx context.Context, id identifier.ID, owner string, deadLetteredAt time.Time, errorCode, errorMessage string) error {
+	if err := validateInboxFailure(id, owner, deadLetteredAt, errorCode, errorMessage); err != nil {
+		return err
+	}
+	rows, err := store.queries.DeadLetterInboxMessage(ctx, sqlc.DeadLetterInboxMessageParams{
+		DeadLetteredAt: deadLetteredAt.UTC(), ErrorCode: nullableText(errorCode), ErrorMessage: nullableText(errorMessage), ID: id.UUID(), LeaseOwner: nullableText(owner),
+	})
+	if err != nil {
+		return fmt.Errorf("dead-letter inbox message: %w", err)
+	}
+	if rows != 1 {
+		return inbox.ErrLeaseLost
+	}
+	return nil
+}
+
+func (store *Store) DeadLetterExhaustedInboxLeases(ctx context.Context, maxAttempts int32, now time.Time) (int64, error) {
+	if maxAttempts < 1 || maxAttempts > 20 || now.IsZero() {
+		return 0, fmt.Errorf("%w: inbox attempts and time are required", inbox.ErrInvalidMessage)
+	}
+	rows, err := store.queries.DeadLetterExhaustedInboxLeases(ctx, sqlc.DeadLetterExhaustedInboxLeasesParams{
+		Now: now.UTC(), MaxAttempts: maxAttempts,
+	})
+	if err != nil {
+		return 0, fmt.Errorf("dead-letter exhausted inbox leases: %w", err)
+	}
+	return rows, nil
+}
+
+func validateInboxLease(id identifier.ID, owner string, at time.Time) error {
+	if id.IsZero() || owner == "" || len(owner) > 128 || at.IsZero() {
+		return fmt.Errorf("%w: inbox ID, owner, and time are required", inbox.ErrInvalidMessage)
+	}
+	return nil
+}
+
+func validateInboxFailure(id identifier.ID, owner string, at time.Time, errorCode, errorMessage string) error {
+	if err := validateInboxLease(id, owner, at); err != nil {
+		return err
+	}
+	if len(errorCode) < 1 || len(errorCode) > 64 || len(errorMessage) < 1 || len(errorMessage) > 1000 {
+		return fmt.Errorf("%w: bounded inbox failure code and message are required", inbox.ErrInvalidMessage)
+	}
+	return nil
+}
+
+func mapInboxMessage(row sqlc.InboxMessage) (inbox.Message, error) {
+	id, err := identifier.FromUUID(row.ID)
+	if err != nil {
+		return inbox.Message{}, fmt.Errorf("map inbox message ID: %w", err)
+	}
+	if len(row.PayloadSha256) != 32 {
+		return inbox.Message{}, fmt.Errorf("%w: inbox payload hash must be 32 bytes", inbox.ErrInvalidMessage)
+	}
+	message := inbox.Message{
+		ID: id, Source: row.Source, MessageID: row.MessageID, State: row.State,
+		AttemptCount: row.AttemptCount, AvailableAt: row.AvailableAt, ReceivedAt: row.ReceivedAt,
+		UpdatedAt: row.UpdatedAt,
+	}
+	copy(message.PayloadSHA256[:], row.PayloadSha256)
+	if row.OrganizationID.Valid {
+		organizationID, orgErr := identifier.FromUUID(row.OrganizationID.Bytes)
+		if orgErr != nil {
+			return inbox.Message{}, fmt.Errorf("map inbox organization ID: %w", orgErr)
+		}
+		message.OrganizationID = &organizationID
+	}
+	if row.PayloadReference.Valid {
+		message.PayloadReference = row.PayloadReference.String
+	}
+	if row.LeaseExpiresAt.Valid {
+		value := row.LeaseExpiresAt.Time
+		message.LeaseExpiresAt = &value
+	}
+	if row.ProcessedAt.Valid {
+		value := row.ProcessedAt.Time
+		message.ProcessedAt = &value
+	}
+	return message, nil
 }
 
 type OutboxEvent struct {

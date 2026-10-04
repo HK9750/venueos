@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/HK9750/venueos/internal/platform/apperror"
 	"github.com/HK9750/venueos/internal/platform/clock"
 	"github.com/HK9750/venueos/internal/platform/identifier"
 	"github.com/stretchr/testify/require"
@@ -96,9 +97,16 @@ func TestAPIKeyServiceRevokeUsesVersionAndStopsAuthentication(t *testing.T) {
 	_, _, err = service.Authenticate(context.Background(), issued.Token)
 	require.ErrorIs(t, err, ErrAPIKeyInactive)
 
-	_, err = service.Revoke(ctx, RevokeAPIKeyInput{OrganizationID: organizationID, APIKeyID: issued.APIKey.ID, ExpectedVersion: 1})
+	retried, err := service.Revoke(ctx, RevokeAPIKeyInput{OrganizationID: organizationID, APIKeyID: issued.APIKey.ID, ExpectedVersion: 1})
+	require.NoError(t, err)
+	require.Equal(t, revoked.ID, retried.ID)
+	require.Equal(t, revoked.Version, retried.Version)
+
+	_, err = service.Revoke(ctx, RevokeAPIKeyInput{OrganizationID: organizationID, APIKeyID: issued.APIKey.ID, ExpectedVersion: 3})
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "inactive")
+	code, classified := apperror.CodeOf(err)
+	require.True(t, classified)
+	require.Equal(t, apperror.CodePreconditionFailed, code)
 }
 
 func TestAPIKeyServiceRotatesImmediatelyWithoutOverlap(t *testing.T) {
@@ -126,11 +134,50 @@ func TestAPIKeyServiceRotatesImmediatelyWithoutOverlap(t *testing.T) {
 	require.Equal(t, organizationID, verified.OrganizationID())
 }
 
+func TestAPIKeyServiceListsTenantScopedMetadataAndValidatesCursor(t *testing.T) {
+	organizationID := newAccessTestID(t)
+	principal, err := NewPrincipal(PrincipalUser, "user-list")
+	require.NoError(t, err)
+	authorization, err := NewAuthorizationForRole(principal, organizationID, RoleOwner)
+	require.NoError(t, err)
+	keyID := newAccessTestID(t)
+	createdAt := time.Date(2026, 10, 3, 12, 0, 0, 0, time.UTC)
+	repository := &apiKeyRepositoryFake{page: APIKeyPage{Items: []APIKey{{ID: keyID, OrganizationID: organizationID, Prefix: "vos_123456789abc", Name: "Reports", Scopes: []Permission{PermissionReportRead}, Version: 1, CreatedAt: createdAt, UpdatedAt: createdAt}}}}
+	service := NewAPIKeyService(repository, clock.NewFixed(createdAt))
+	page, err := service.List(WithAuthorization(context.Background(), authorization), organizationID, 10, nil)
+	require.NoError(t, err)
+	require.Len(t, page.Items, 1)
+	require.Equal(t, int32(10), repository.listLimit)
+
+	cursor := APIKeyCursor{OrganizationID: organizationID, ID: keyID, CreatedAt: createdAt}
+	encoded, err := EncodeAPIKeyCursor(cursor)
+	require.NoError(t, err)
+	decoded, err := DecodeAPIKeyCursor(encoded)
+	require.NoError(t, err)
+	require.Equal(t, cursor, decoded)
+	otherOrganizationID := newAccessTestID(t)
+	_, err = service.List(WithAuthorization(context.Background(), authorization), organizationID, 10, &APIKeyCursor{OrganizationID: otherOrganizationID, ID: keyID, CreatedAt: createdAt})
+	code, classified := apperror.CodeOf(err)
+	require.True(t, classified)
+	require.Equal(t, apperror.CodeInvalidCursor, code)
+	_, err = DecodeAPIKeyCursor(encoded + "x")
+	code, classified = apperror.CodeOf(err)
+	require.True(t, classified)
+	require.Equal(t, apperror.CodeInvalidCursor, code)
+}
+
 type apiKeyRepositoryFake struct {
 	created    CreateAPIKeyRecord
 	stored     StoredAPIKey
 	keys       map[string]StoredAPIKey
 	touchCount int
+	page       APIKeyPage
+	listLimit  int32
+}
+
+func (fake *apiKeyRepositoryFake) ListAPIKeys(_ context.Context, _ identifier.ID, limit int32, _ *APIKeyCursor) (APIKeyPage, error) {
+	fake.listLimit = limit
+	return fake.page, nil
 }
 
 func (fake *apiKeyRepositoryFake) CreateAPIKey(_ context.Context, record CreateAPIKeyRecord) (APIKey, error) {
@@ -149,7 +196,10 @@ func (fake *apiKeyRepositoryFake) RevokeAPIKey(_ context.Context, record RevokeA
 		return APIKey{}, ErrAPIKeyNotFound
 	}
 	if current.RevokedAt != nil {
-		return APIKey{}, ErrAPIKeyInactive
+		if record.ExpectedVersion == current.Version || record.ExpectedVersion == current.Version-1 {
+			return current.APIKey, nil
+		}
+		return APIKey{}, ErrAPIKeyVersion
 	}
 	if current.Version != record.ExpectedVersion {
 		return APIKey{}, ErrAPIKeyVersion

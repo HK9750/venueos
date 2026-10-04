@@ -41,6 +41,10 @@ func TestMoneyCheckedArithmetic(t *testing.T) {
 	if err != nil || remainder != left {
 		t.Fatalf("Subtract() = %+v, %v; want %+v", remainder, err, left)
 	}
+	extended, err := right.Multiply(3)
+	if err != nil || extended.MinorUnits() != 900 || extended.Currency() != usd {
+		t.Fatalf("Multiply() = %+v, %v", extended, err)
+	}
 
 	other, _ := New(1, gbp)
 	if _, err := left.Add(other); !errors.Is(err, ErrCurrencyMismatch) {
@@ -52,6 +56,9 @@ func TestMoneyCheckedArithmetic(t *testing.T) {
 	maximum, _ := New(math.MaxInt64, usd)
 	if _, err := maximum.Add(otherCurrency(t, 1, usd)); !errors.Is(err, ErrOverflow) {
 		t.Fatalf("overflow error = %v", err)
+	}
+	if _, err := maximum.Multiply(2); !errors.Is(err, ErrOverflow) {
+		t.Fatalf("multiplication overflow error = %v", err)
 	}
 }
 

@@ -78,12 +78,27 @@ Redaction is centralized and tested.
 Metric labels must be bounded. Organization/session/order/job IDs belong in traces or
 logs, never Prometheus labels.
 
+Audit explorer responses apply a second redaction boundary to before/after JSON
+diffs. Keys containing credential, token, secret, password, authorization, cookie,
+or private-key material are replaced before serialization; raw audit payloads and
+request data are never added as metric labels.
+
+Entry dashboard freshness is explicit in every summary response: `generated_at`,
+the latest received scan as `data_as_of`, and a bounded non-negative
+`data_delay_seconds`. Aggregates remain read-only projections over immutable scan
+attempts, so a dashboard delay cannot change admission authority.
+
 The worker foundation exports completed run count and duration by registered job
 type/result/class, plus due queue depth and oldest due age by registered type.
 Unsupported records collapse to the static `unsupported` label and exhausted lease
 sweeps to `expired_lease`; arbitrary database job types never become metric labels.
 The worker exposes these metrics on the same separately configured admin listener
-policy as the API process.
+policy as the API process. The HTTP transport also increments a bounded
+`service_http_errors_total` counter labelled only by method, route template, and
+stable application error code; error messages, identifiers, and request data are
+never metric labels. API and worker processes also register bounded PostgreSQL
+pool gauges for total, acquired, idle, and configured maximum connections, plus
+acquisition-wait, new-connection, and lifecycle-destruction counters.
 
 ## Tracing
 

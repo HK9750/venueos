@@ -63,6 +63,11 @@ func TestAPIKeyRepositoryLifecyclePersistsOnlyVerifierAndAudit(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, verifier, stored.SecretHash)
 	require.Equal(t, []access.Permission{access.PermissionReportRead}, stored.Scopes)
+	page, err := repository.ListAPIKeys(ctx, organizationID, 10, nil)
+	require.NoError(t, err)
+	require.Len(t, page.Items, 1)
+	require.Equal(t, created.ID, page.Items[0].ID)
+	require.Nil(t, page.NextCursor)
 	revoked, err := repository.RevokeAPIKey(ctx, access.RevokeAPIKeyRecord{
 		OrganizationID: organizationID, APIKeyID: keyID, ExpectedVersion: created.Version,
 		RevokedAt: now.Add(time.Minute), AuditID: newAPIKeyIntegrationID(t), OutboxID: newAPIKeyIntegrationID(t), ActorType: "user", ActorID: "user-1",
@@ -70,6 +75,13 @@ func TestAPIKeyRepositoryLifecyclePersistsOnlyVerifierAndAudit(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(2), revoked.Version)
 	require.NotNil(t, revoked.RevokedAt)
+	retried, err := repository.RevokeAPIKey(ctx, access.RevokeAPIKeyRecord{
+		OrganizationID: organizationID, APIKeyID: keyID, ExpectedVersion: created.Version,
+		RevokedAt: now.Add(2 * time.Minute), AuditID: newAPIKeyIntegrationID(t), OutboxID: newAPIKeyIntegrationID(t), ActorType: "user", ActorID: "user-1",
+	})
+	require.NoError(t, err)
+	require.Equal(t, revoked.ID, retried.ID)
+	require.Equal(t, revoked.Version, retried.Version)
 	require.ErrorIs(t, repository.TouchAPIKey(ctx, keyID, now.Add(2*time.Minute)), access.ErrAPIKeyInactive)
 	var auditCount, outboxCount int
 	require.NoError(t, pool.QueryRow(ctx, `SELECT count(*) FROM audit_entries WHERE organization_id = $1`, organizationID.UUID()).Scan(&auditCount))

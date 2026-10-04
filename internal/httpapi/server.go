@@ -14,7 +14,10 @@ import (
 	"time"
 
 	"github.com/HK9750/venueos/internal/access"
+	"github.com/HK9750/venueos/internal/audit"
 	"github.com/HK9750/venueos/internal/channel"
+	"github.com/HK9750/venueos/internal/device"
+	"github.com/HK9750/venueos/internal/entry"
 	"github.com/HK9750/venueos/internal/event"
 	"github.com/HK9750/venueos/internal/inventory"
 	"github.com/HK9750/venueos/internal/invitation"
@@ -24,6 +27,7 @@ import (
 	"github.com/HK9750/venueos/internal/platform/identifier"
 	"github.com/HK9750/venueos/internal/pricing"
 	"github.com/HK9750/venueos/internal/publication"
+	"github.com/HK9750/venueos/internal/refund"
 	"github.com/HK9750/venueos/internal/session"
 	"github.com/HK9750/venueos/internal/user"
 	"github.com/HK9750/venueos/internal/venue"
@@ -47,6 +51,20 @@ type Readiness interface {
 type OrganizationService interface {
 	Create(context.Context, organization.CreateInput) (organization.Organization, bool, error)
 	Get(context.Context, identifier.ID) (organization.Organization, error)
+}
+
+type APIKeyService interface {
+	List(context.Context, identifier.ID, int32, *access.APIKeyCursor) (access.APIKeyPage, error)
+	Revoke(context.Context, access.RevokeAPIKeyInput) (access.APIKey, error)
+}
+
+type APIKeyCommandService interface {
+	Create(context.Context, access.CreateAPIKeyInput) (access.IssuedAPIKey, error)
+	Rotate(context.Context, access.RotateAPIKeyInput) (access.IssuedAPIKey, error)
+}
+
+type AuditService interface {
+	List(context.Context, audit.ListInput) (audit.Page, error)
 }
 
 type MembershipService interface {
@@ -85,6 +103,24 @@ type InventoryService interface {
 	ListAvailabilityEvents(context.Context, identifier.ID, identifier.ID, int64, int32) (inventory.AvailabilityReplayPage, error)
 }
 
+type EntryService interface {
+	Summary(context.Context, entry.SummaryInput) (entry.Summary, error)
+}
+
+type EntryScanService interface {
+	Scan(context.Context, entry.ScanInput) (entry.ScanResult, error)
+}
+
+type DeviceService interface {
+	List(context.Context, identifier.ID, int32, *device.Cursor) (device.Page, error)
+	Create(context.Context, device.CreateInput) (device.IssuedDevice, error)
+	Get(context.Context, identifier.ID, identifier.ID) (device.Device, error)
+	ChangeState(context.Context, device.ChangeStateInput) (device.Device, error)
+	ListAssignments(context.Context, identifier.ID, identifier.ID, int32, *device.AssignmentCursor) (device.AssignmentPage, error)
+	CreateAssignment(context.Context, device.CreateAssignmentInput) (device.Assignment, error)
+	RevokeAssignment(context.Context, device.RevokeAssignmentInput) (device.Assignment, error)
+}
+
 type PricingService interface {
 	Create(context.Context, pricing.CreateInput) (pricing.PriceTier, error)
 	List(context.Context, identifier.ID, identifier.ID, int32, *pricing.Cursor) (pricing.Page, error)
@@ -121,18 +157,28 @@ type VenueService interface {
 	CloneSeatMap(context.Context, venue.CloneSeatMapInput) (venue.SeatMap, error)
 }
 
+type RefundService interface {
+	Request(context.Context, refund.RequestInput) (refund.Refund, error)
+	Get(context.Context, refund.GetInput) (refund.Refund, error)
+}
+
 type Server struct {
 	users         UserService
 	organizations OrganizationService
+	apiKeys       APIKeyService
+	audits        AuditService
 	memberships   MembershipService
 	invitations   InvitationService
 	events        EventService
 	sessions      SessionService
 	inventory     InventoryService
+	entries       EntryService
+	devices       DeviceService
 	pricing       PricingService
 	channels      SalesChannelService
 	publication   PublicationService
 	venues        VenueService
+	refunds       RefundService
 	readiness     Readiness
 	logger        *slog.Logger
 }
@@ -143,6 +189,16 @@ func NewServer(users UserService, readiness Readiness, logger *slog.Logger) *Ser
 
 func (s *Server) WithOrganizations(service OrganizationService) *Server {
 	s.organizations = service
+	return s
+}
+
+func (s *Server) WithAPIKeys(service APIKeyService) *Server {
+	s.apiKeys = service
+	return s
+}
+
+func (s *Server) WithAudit(service AuditService) *Server {
+	s.audits = service
 	return s
 }
 
@@ -171,6 +227,16 @@ func (s *Server) WithInventory(service InventoryService) *Server {
 	return s
 }
 
+func (s *Server) WithEntry(service EntryService) *Server {
+	s.entries = service
+	return s
+}
+
+func (s *Server) WithDevices(service DeviceService) *Server {
+	s.devices = service
+	return s
+}
+
 func (s *Server) WithPricing(service PricingService) *Server {
 	s.pricing = service
 	return s
@@ -191,6 +257,11 @@ func (s *Server) WithVenues(service VenueService) *Server {
 	return s
 }
 
+func (s *Server) WithRefunds(service RefundService) *Server {
+	s.refunds = service
+	return s
+}
+
 func (s *Server) Healthz(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -204,6 +275,74 @@ func (s *Server) Readyz(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) CreateRefund(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, orderID uuid.UUID, params CreateRefundParams) {
+	if s.refunds == nil {
+		s.writeApplicationError(w, r, errors.New("refund service is not configured"))
+		return
+	}
+	orgID, err := identifier.FromUUID(organizationID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The organization identifier is invalid.", nil)
+		return
+	}
+	targetOrderID, err := identifier.FromUUID(orderID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The order identifier is invalid.", nil)
+		return
+	}
+	var body CreateRefund
+	if !s.decodeJSONBody(w, r, &body) {
+		return
+	}
+	paymentAttemptID, err := identifier.FromUUID(body.PaymentAttemptId)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The payment attempt identifier is invalid.", nil)
+		return
+	}
+	created, err := s.refunds.Request(r.Context(), refund.RequestInput{
+		OrganizationID:   orgID,
+		OrderID:          targetOrderID,
+		PaymentAttemptID: paymentAttemptID,
+		AmountMinor:      body.AmountMinor,
+		Currency:         body.Currency,
+		IdempotencyKey:   params.IdempotencyKey,
+		Reason:           body.Reason,
+	})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	s.writeRefund(w, http.StatusCreated, created)
+}
+
+func (s *Server) GetRefund(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, orderID uuid.UUID, refundID uuid.UUID) {
+	if s.refunds == nil {
+		s.writeApplicationError(w, r, errors.New("refund service is not configured"))
+		return
+	}
+	orgID, err := identifier.FromUUID(organizationID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The organization identifier is invalid.", nil)
+		return
+	}
+	targetOrderID, err := identifier.FromUUID(orderID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The order identifier is invalid.", nil)
+		return
+	}
+	targetRefundID, err := identifier.FromUUID(refundID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The refund identifier is invalid.", nil)
+		return
+	}
+	value, err := s.refunds.Get(r.Context(), refund.GetInput{OrganizationID: orgID, OrderID: targetOrderID, RefundID: targetRefundID})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	s.writeRefund(w, http.StatusOK, value)
 }
 
 func (s *Server) ListUsers(w http.ResponseWriter, r *http.Request, params ListUsersParams) {
@@ -319,6 +458,435 @@ func (s *Server) GetOrganization(w http.ResponseWriter, r *http.Request, organiz
 		return
 	}
 	writeJSON(w, http.StatusOK, organizationResponse(found))
+}
+
+func (s *Server) ListAPIKeys(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, params ListAPIKeysParams) {
+	if s.apiKeys == nil {
+		s.writeApplicationError(w, r, errors.New("API key service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	limit := int32(0)
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+	var after *access.APIKeyCursor
+	if params.Cursor != nil {
+		decoded, decodeErr := access.DecodeAPIKeyCursor(*params.Cursor)
+		if decodeErr != nil {
+			s.writeApplicationError(w, r, decodeErr)
+			return
+		}
+		after = &decoded
+	}
+	page, err := s.apiKeys.List(r.Context(), orgID, limit, after)
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	response := APIKeyPage{Items: make([]APIKey, 0, len(page.Items))}
+	response.Page.HasMore = page.NextCursor != nil
+	if page.NextCursor != nil {
+		cursor, encodeErr := access.EncodeAPIKeyCursor(*page.NextCursor)
+		if encodeErr != nil {
+			s.writeApplicationError(w, r, encodeErr)
+			return
+		}
+		response.Page.NextCursor = &cursor
+	}
+	for _, item := range page.Items {
+		response.Items = append(response.Items, apiKeyResponse(item))
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) CreateAPIKey(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID) {
+	commandService, ok := s.apiKeys.(APIKeyCommandService)
+	if !ok {
+		s.writeApplicationError(w, r, errors.New("API key command service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	var body CreateAPIKey
+	if !s.decodeJSONBody(w, r, &body) {
+		return
+	}
+	scopes := make([]access.Permission, 0, len(body.Scopes))
+	for _, scope := range body.Scopes {
+		scopes = append(scopes, access.Permission(scope))
+	}
+	issued, err := commandService.Create(r.Context(), access.CreateAPIKeyInput{OrganizationID: orgID, Name: body.Name, Scopes: scopes, ExpiresAt: body.ExpiresAt})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	token := issued.Token
+	w.Header().Set("Location", "/v1/organizations/"+organizationID.String()+"/api-keys/"+issued.APIKey.ID.String())
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", issued.APIKey.Version))
+	writeJSON(w, http.StatusCreated, IssuedAPIKey{ApiKey: apiKeyResponse(issued.APIKey), Token: &token})
+}
+
+func (s *Server) RevokeAPIKey(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, keyID uuid.UUID, params RevokeAPIKeyParams) {
+	if s.apiKeys == nil {
+		s.writeApplicationError(w, r, errors.New("API key service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	targetID, err := identifier.FromUUID(keyID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The API key identifier is invalid.", nil)
+		return
+	}
+	version, err := parseIfMatch(params.IfMatch)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "If-Match must contain a positive API key version.", nil)
+		return
+	}
+	revoked, err := s.apiKeys.Revoke(r.Context(), access.RevokeAPIKeyInput{
+		OrganizationID: orgID, APIKeyID: targetID, ExpectedVersion: version,
+	})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", revoked.Version))
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) RotateAPIKey(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, keyID uuid.UUID, params RotateAPIKeyParams) {
+	commandService, ok := s.apiKeys.(APIKeyCommandService)
+	if !ok {
+		s.writeApplicationError(w, r, errors.New("API key command service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	targetID, err := identifier.FromUUID(keyID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The API key identifier is invalid.", nil)
+		return
+	}
+	version, err := parseIfMatch(params.IfMatch)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "If-Match must contain a positive API key version.", nil)
+		return
+	}
+	var body RotateAPIKey
+	if r.ContentLength != 0 {
+		if !s.decodeJSONBody(w, r, &body) {
+			return
+		}
+	}
+	issued, err := commandService.Rotate(r.Context(), access.RotateAPIKeyInput{OrganizationID: orgID, APIKeyID: targetID, ExpectedVersion: version, ExpiresAt: body.ExpiresAt})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	token := issued.Token
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", issued.APIKey.Version))
+	writeJSON(w, http.StatusOK, IssuedAPIKey{ApiKey: apiKeyResponse(issued.APIKey), Token: &token})
+}
+
+func (s *Server) ListDevices(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, params ListDevicesParams) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	limit := int32(0)
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+	var after *device.Cursor
+	if params.Cursor != nil {
+		decoded, decodeErr := device.DecodeCursor(*params.Cursor)
+		if decodeErr != nil {
+			s.writeApplicationError(w, r, apperror.Wrap(decodeErr, apperror.CodeInvalidCursor, "The device cursor is invalid."))
+			return
+		}
+		after = &decoded
+	}
+	page, err := s.devices.List(r.Context(), orgID, limit, after)
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	response := DevicePage{Items: make([]Device, 0, len(page.Items))}
+	response.Page.HasMore = page.NextCursor != nil
+	if page.NextCursor != nil {
+		cursor, encodeErr := device.EncodeCursor(*page.NextCursor)
+		if encodeErr != nil {
+			s.writeApplicationError(w, r, encodeErr)
+			return
+		}
+		response.Page.NextCursor = &cursor
+	}
+	for _, item := range page.Items {
+		response.Items = append(response.Items, deviceResponse(item))
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) CreateDevice(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	var body CreateDevice
+	if !s.decodeJSONBody(w, r, &body) {
+		return
+	}
+	venueID, err := identifier.FromUUID(body.VenueId)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The venue identifier is invalid.", nil)
+		return
+	}
+	issued, err := s.devices.Create(r.Context(), device.CreateInput{OrganizationID: orgID, VenueID: venueID, Name: body.Name, Platform: body.Platform, AppVersion: body.AppVersion})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	w.Header().Set("Location", "/v1/organizations/"+organizationID.String()+"/devices/"+issued.Device.ID.String())
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", issued.Device.Version))
+	writeJSON(w, http.StatusCreated, issuedDeviceResponse(issued))
+}
+
+func (s *Server) GetDevice(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, deviceID uuid.UUID) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, targetID, ok := s.resourceIDs(w, r, organizationID, deviceID, "device")
+	if !ok {
+		return
+	}
+	found, err := s.devices.Get(r.Context(), orgID, targetID)
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", found.Version))
+	writeJSON(w, http.StatusOK, deviceResponse(found))
+}
+
+func (s *Server) ChangeDeviceState(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, deviceID uuid.UUID, params ChangeDeviceStateParams) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, targetID, version, ok := s.resourceCommandInputs(w, r, organizationID, deviceID, params.IfMatch, "device")
+	if !ok {
+		return
+	}
+	var body ChangeDeviceState
+	if !s.decodeJSONBody(w, r, &body) {
+		return
+	}
+	updated, err := s.devices.ChangeState(r.Context(), device.ChangeStateInput{OrganizationID: orgID, DeviceID: targetID, State: device.State(body.State), ExpectedVersion: version})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", updated.Version))
+	writeJSON(w, http.StatusOK, deviceResponse(updated))
+}
+
+func (s *Server) ListDeviceAssignments(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, deviceID uuid.UUID, params ListDeviceAssignmentsParams) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, targetID, ok := s.resourceIDs(w, r, organizationID, deviceID, "device")
+	if !ok {
+		return
+	}
+	limit := int32(0)
+	if params.Limit != nil {
+		limit = *params.Limit
+	}
+	var after *device.AssignmentCursor
+	if params.Cursor != nil {
+		decoded, decodeErr := device.DecodeAssignmentCursor(*params.Cursor)
+		if decodeErr != nil {
+			s.writeApplicationError(w, r, apperror.Wrap(decodeErr, apperror.CodeInvalidCursor, "The assignment cursor is invalid."))
+			return
+		}
+		after = &decoded
+	}
+	page, err := s.devices.ListAssignments(r.Context(), orgID, targetID, limit, after)
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	response := DeviceAssignmentPage{Items: make([]DeviceAssignment, 0, len(page.Items))}
+	response.Page.HasMore = page.NextCursor != nil
+	if page.NextCursor != nil {
+		cursor, encodeErr := device.EncodeAssignmentCursor(*page.NextCursor)
+		if encodeErr != nil {
+			s.writeApplicationError(w, r, encodeErr)
+			return
+		}
+		response.Page.NextCursor = &cursor
+	}
+	for _, item := range page.Items {
+		response.Items = append(response.Items, deviceAssignmentResponse(item))
+	}
+	writeJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) CreateDeviceAssignment(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, deviceID uuid.UUID) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, targetID, ok := s.resourceIDs(w, r, organizationID, deviceID, "device")
+	if !ok {
+		return
+	}
+	var body CreateDeviceAssignment
+	if !s.decodeJSONBody(w, r, &body) {
+		return
+	}
+	var sessionID, gateID *identifier.ID
+	if body.SessionId != nil {
+		value, err := identifier.FromUUID(*body.SessionId)
+		if err != nil {
+			writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The session identifier is invalid.", nil)
+			return
+		}
+		sessionID = &value
+	}
+	if body.GateId != nil {
+		value, err := identifier.FromUUID(*body.GateId)
+		if err != nil {
+			writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The gate identifier is invalid.", nil)
+			return
+		}
+		gateID = &value
+	}
+	capability := access.PermissionEntryScan
+	if body.Capability != nil {
+		capability = access.Permission(*body.Capability)
+	}
+	created, err := s.devices.CreateAssignment(r.Context(), device.CreateAssignmentInput{OrganizationID: orgID, DeviceID: targetID, SessionID: sessionID, GateID: gateID, Capability: capability, ValidFrom: timeValue(body.ValidFrom), ValidUntil: body.ValidUntil})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	w.Header().Set("Location", "/v1/organizations/"+organizationID.String()+"/devices/"+deviceID.String()+"/assignments/"+created.ID.String())
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", created.Version))
+	writeJSON(w, http.StatusCreated, deviceAssignmentResponse(created))
+}
+
+func (s *Server) RevokeDeviceAssignment(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, deviceID uuid.UUID, assignmentID uuid.UUID, params RevokeDeviceAssignmentParams) {
+	if s.devices == nil {
+		s.writeApplicationError(w, r, errors.New("device service is not configured"))
+		return
+	}
+	orgID, targetID, ok := s.resourceIDs(w, r, organizationID, deviceID, "device")
+	if !ok {
+		return
+	}
+	assignment, err := identifier.FromUUID(assignmentID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The assignment identifier is invalid.", nil)
+		return
+	}
+	version, err := parseIfMatch(params.IfMatch)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "If-Match must contain a positive assignment version.", nil)
+		return
+	}
+	revoked, err := s.devices.RevokeAssignment(r.Context(), device.RevokeAssignmentInput{OrganizationID: orgID, DeviceID: targetID, AssignmentID: assignment, ExpectedVersion: version})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	w.Header().Set("ETag", fmt.Sprintf("\"%d\"", revoked.Version))
+	writeJSON(w, http.StatusOK, deviceAssignmentResponse(revoked))
+}
+
+func (s *Server) ListAuditEntries(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, params ListAuditEntriesParams) {
+	if s.audits == nil {
+		s.writeApplicationError(w, r, errors.New("audit service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	input := audit.ListInput{OrganizationID: orgID}
+	if params.Limit != nil {
+		input.Limit = *params.Limit
+	}
+	if params.ActorType != nil {
+		input.ActorType = *params.ActorType
+	}
+	if params.ActorId != nil {
+		input.ActorID = *params.ActorId
+	}
+	if params.Action != nil {
+		input.Action = *params.Action
+	}
+	if params.SubjectType != nil {
+		input.SubjectType = *params.SubjectType
+	}
+	if params.SubjectId != nil {
+		input.SubjectID = *params.SubjectId
+	}
+	if params.Result != nil {
+		input.Result = string(*params.Result)
+	}
+	if params.RequestId != nil {
+		input.RequestID = *params.RequestId
+	}
+	input.OccurredFrom = params.OccurredFrom
+	input.OccurredUntil = params.OccurredUntil
+	if params.Cursor != nil {
+		cursor, decodeErr := audit.DecodeCursor(*params.Cursor)
+		if decodeErr != nil {
+			s.writeApplicationError(w, r, decodeErr)
+			return
+		}
+		input.After = &cursor
+	}
+	page, err := s.audits.List(r.Context(), input)
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	response := AuditEntryPage{Items: make([]AuditEntry, 0, len(page.Items))}
+	response.Page.HasMore = page.NextCursor != nil
+	if page.NextCursor != nil {
+		cursor, encodeErr := audit.EncodeCursor(*page.NextCursor)
+		if encodeErr != nil {
+			s.writeApplicationError(w, r, encodeErr)
+			return
+		}
+		response.Page.NextCursor = &cursor
+	}
+	for _, item := range page.Items {
+		response.Items = append(response.Items, auditEntryResponse(item))
+	}
+	writeJSON(w, http.StatusOK, response)
 }
 
 func (s *Server) CreateInvitation(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID) {
@@ -660,7 +1228,7 @@ func (s *Server) GetSession(w http.ResponseWriter, r *http.Request, organization
 	writeJSON(w, http.StatusOK, sessionResponse(found))
 }
 
-func (s *Server) GetSessionAvailability(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, sessionID uuid.UUID) {
+func (s *Server) GetSessionAvailability(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, sessionID uuid.UUID, params GetSessionAvailabilityParams) {
 	if s.inventory == nil {
 		s.writeApplicationError(w, r, errors.New("inventory service is not configured"))
 		return
@@ -677,6 +1245,12 @@ func (s *Server) GetSessionAvailability(w http.ResponseWriter, r *http.Request, 
 	snapshot, err := s.inventory.GetAvailabilitySnapshot(r.Context(), orgID, targetSessionID)
 	if err != nil {
 		s.writeApplicationError(w, r, err)
+		return
+	}
+	etag := fmt.Sprintf("\"%s:%d\"", snapshot.SessionID.String(), snapshot.Revision)
+	w.Header().Set("ETag", etag)
+	if params.IfNoneMatch != nil && etagMatches(*params.IfNoneMatch, etag) {
+		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 	response := availabilitySnapshotResponse(snapshot)
@@ -722,6 +1296,84 @@ func (s *Server) ListSessionAvailabilityChanges(w http.ResponseWriter, r *http.R
 		response.Events = append(response.Events, AvailabilityEvent{Id: item.ID.UUID(), SessionId: item.SessionID.UUID(), Sequence: item.Sequence, EventType: item.EventType, SchemaVersion: item.SchemaVersion, Payload: payload, OccurredAt: item.OccurredAt})
 	}
 	writeJSON(w, http.StatusOK, response)
+}
+
+func (s *Server) GetEntrySummary(w http.ResponseWriter, r *http.Request, organizationID uuid.UUID, sessionID uuid.UUID, params GetEntrySummaryParams) {
+	if s.entries == nil {
+		s.writeApplicationError(w, r, errors.New("entry service is not configured"))
+		return
+	}
+	orgID, ok := s.parseOrganizationID(w, r, organizationID)
+	if !ok {
+		return
+	}
+	targetSessionID, err := identifier.FromUUID(sessionID)
+	if err != nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The session identifier is invalid.", nil)
+		return
+	}
+	value, err := s.entries.Summary(r.Context(), entry.SummaryInput{OrganizationID: orgID, SessionID: targetSessionID, From: params.From, Until: params.Until})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, entrySummaryResponse(value))
+}
+
+func (s *Server) RecordDeviceScan(w http.ResponseWriter, r *http.Request) {
+	scanService, ok := s.entries.(EntryScanService)
+	if !ok {
+		s.writeApplicationError(w, r, errors.New("entry scan service is not configured"))
+		return
+	}
+	authorization, err := access.AuthorizationFromContext(r.Context())
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	var body RecordDeviceScan
+	if !s.decodeJSONBody(w, r, &body) {
+		return
+	}
+	if body.Credential == nil {
+		writeAPIError(w, r, http.StatusBadRequest, apperror.CodeMalformedRequest, "The ticket credential is required.", nil)
+		return
+	}
+	var gateID *identifier.ID
+	if body.GateId != nil {
+		parsed, parseErr := identifier.FromUUID(*body.GateId)
+		if parseErr != nil {
+			writeAPIError(w, r, http.StatusBadRequest, apperror.CodeInvalidRequest, "The gate identifier is invalid.", nil)
+			return
+		}
+		gateID = &parsed
+	}
+	metadata := []byte(nil)
+	if body.Metadata != nil {
+		metadata, err = json.Marshal(*body.Metadata)
+		if err != nil {
+			writeAPIError(w, r, http.StatusBadRequest, apperror.CodeMalformedRequest, "The scan metadata is invalid.", nil)
+			return
+		}
+	}
+	result, err := scanService.Scan(r.Context(), entry.ScanInput{
+		OrganizationID: authorization.OrganizationID(), GateID: gateID, DeviceScanID: body.DeviceScanId,
+		Credential: *body.Credential, ScannedAt: body.ScannedAt, Metadata: metadata,
+	})
+	if err != nil {
+		s.writeApplicationError(w, r, err)
+		return
+	}
+	var admissionID *openapi_types.UUID
+	if result.AdmissionID != nil {
+		parsed := result.AdmissionID.UUID()
+		admissionID = &parsed
+	}
+	writeJSON(w, http.StatusOK, DeviceScanResult{
+		ScanAttemptId: result.ScanAttemptID.UUID(), AdmissionId: admissionID,
+		TicketId: result.Decision.TicketID.UUID(), Decision: DeviceScanResultDecision(result.Decision.Code),
+		Admitted: result.Decision.Admittable, Replay: result.Replay,
+	})
 }
 
 func (s *Server) sessionResourceIDs(w http.ResponseWriter, r *http.Request, organizationID, eventID, sessionID uuid.UUID) (identifier.ID, identifier.ID, identifier.ID, bool) {
@@ -1768,6 +2420,20 @@ func parseIfMatch(value string) (int64, error) {
 	return version, nil
 }
 
+func etagMatches(value, current string) bool {
+	for _, candidate := range strings.Split(value, ",") {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == "*" {
+			return true
+		}
+		candidate = strings.TrimPrefix(candidate, "W/")
+		if candidate == current {
+			return true
+		}
+	}
+	return false
+}
+
 func optionalString(value *string) string {
 	if value == nil {
 		return ""
@@ -1827,6 +2493,31 @@ func availabilitySnapshotResponse(value inventory.AvailabilitySnapshot) Availabi
 		pools = append(pools, AvailabilityGAPool{Id: pool.ID.UUID(), Slug: pool.Slug, SellableCapacity: pool.SellableCapacity, SoldQuantity: pool.SoldQuantity, HeldQuantity: pool.HeldQuantity, KilledQuantity: pool.KilledQuantity, CompedQuantity: pool.CompedQuantity, Available: pool.Available, Version: pool.Version})
 	}
 	return AvailabilitySnapshot{OrganizationId: value.OrganizationID.UUID(), SessionId: value.SessionID.UUID(), InventoryMode: InventoryMode(value.InventoryMode), SessionStatus: SessionStatus(value.SessionStatus), Revision: value.Revision, ServerTime: value.ServerTime, Seats: seats, GaPools: pools}
+}
+
+func entrySummaryResponse(value entry.Summary) EntrySummary {
+	byResult := make([]EntryResultCount, 0, len(value.ByResult))
+	for _, item := range value.ByResult {
+		byResult = append(byResult, EntryResultCount{Result: item.Result, Count: item.Count})
+	}
+	byGate := make([]EntryGateCount, 0, len(value.ByGate))
+	for _, item := range value.ByGate {
+		var gateID *openapi_types.UUID
+		if item.GateID != nil {
+			parsed := item.GateID.UUID()
+			gateID = &parsed
+		}
+		byGate = append(byGate, EntryGateCount{GateId: gateID, Count: item.Count})
+	}
+	byMinute := make([]EntryMinuteCount, 0, len(value.ByMinute))
+	for _, item := range value.ByMinute {
+		byMinute = append(byMinute, EntryMinuteCount{Minute: item.Minute.UTC(), Count: item.Count})
+	}
+	byTicketType := make([]EntryTicketTypeCount, 0, len(value.ByTicketType))
+	for _, item := range value.ByTicketType {
+		byTicketType = append(byTicketType, EntryTicketTypeCount{PriceTierId: item.PriceTierID.UUID(), Count: item.Count})
+	}
+	return EntrySummary{OrganizationId: value.OrganizationID.UUID(), SessionId: value.SessionID.UUID(), GeneratedAt: value.GeneratedAt.UTC(), DataAsOf: value.DataAsOf, DataDelaySeconds: int64(value.DataDelay / time.Second), TotalScans: value.TotalScans, ByResult: byResult, ByGate: byGate, ByMinute: byMinute, ByTicketType: byTicketType}
 }
 
 func sessionResponse(value session.Session) Session {
@@ -1942,6 +2633,32 @@ func issuedInvitationResponse(value invitation.IssueResult) IssuedInvitation {
 		CreatedAt: base.CreatedAt, UpdatedAt: base.UpdatedAt}
 }
 
+func refundResponse(value refund.Refund) Refund {
+	var providerRefundID *string
+	if value.ProviderRefundID != "" {
+		providerRefundID = &value.ProviderRefundID
+	}
+	return Refund{
+		Id:               value.ID.UUID(),
+		OrganizationId:   value.OrganizationID.UUID(),
+		OrderId:          value.OrderID.UUID(),
+		PaymentAttemptId: value.PaymentAttemptID.UUID(),
+		AmountMinor:      value.AmountMinor,
+		Currency:         value.Currency,
+		Status:           RefundStatus(value.Status),
+		IdempotencyKey:   value.IdempotencyKey,
+		Reason:           value.Reason,
+		ProviderRefundId: providerRefundID,
+		Version:          value.Version,
+		CreatedAt:        value.CreatedAt.UTC(),
+		UpdatedAt:        value.UpdatedAt.UTC(),
+	}
+}
+
+func (s *Server) writeRefund(w http.ResponseWriter, status int, value refund.Refund) {
+	writeJSON(w, status, refundResponse(value))
+}
+
 func (s *Server) writeApplicationError(w http.ResponseWriter, r *http.Request, err error) {
 	var classified *apperror.Error
 	if errors.As(err, &classified) {
@@ -1998,6 +2715,79 @@ func organizationResponse(value organization.Organization) Organization {
 		SettingsVersion: value.SettingsVersion, CreatedAt: value.CreatedAt, UpdatedAt: value.UpdatedAt}
 }
 
+func apiKeyResponse(value access.APIKey) APIKey {
+	scopes := make([]string, 0, len(value.Scopes))
+	for _, scope := range value.Scopes {
+		scopes = append(scopes, string(scope))
+	}
+	return APIKey{Id: value.ID.UUID(), OrganizationId: value.OrganizationID.UUID(), Prefix: value.Prefix, Name: value.Name, Scopes: scopes, ExpiresAt: value.ExpiresAt, RevokedAt: value.RevokedAt, LastUsedAt: value.LastUsedAt, Version: value.Version, CreatedAt: value.CreatedAt, UpdatedAt: value.UpdatedAt}
+}
+
+func deviceResponse(value device.Device) Device {
+	return Device{Id: value.ID.UUID(), OrganizationId: value.OrganizationID.UUID(), VenueId: value.VenueID.UUID(), Name: value.Name, Platform: value.Platform, AppVersion: value.AppVersion, State: DeviceState(value.State), LastSeenAt: value.LastSeenAt, Version: value.Version, CreatedAt: value.CreatedAt.UTC(), UpdatedAt: value.UpdatedAt.UTC()}
+}
+
+func issuedDeviceResponse(value device.IssuedDevice) IssuedDevice {
+	return IssuedDevice{Device: deviceResponse(value.Device), Token: value.Token}
+}
+
+func deviceAssignmentResponse(value device.Assignment) DeviceAssignment {
+	var sessionID, gateID *openapi_types.UUID
+	if value.SessionID != nil {
+		mapped := value.SessionID.UUID()
+		sessionID = &mapped
+	}
+	if value.GateID != nil {
+		mapped := value.GateID.UUID()
+		gateID = &mapped
+	}
+	return DeviceAssignment{Id: value.ID.UUID(), OrganizationId: value.OrganizationID.UUID(), DeviceId: value.DeviceID.UUID(), SessionId: sessionID, GateId: gateID, Capability: DeviceAssignmentCapability(value.Capability), State: DeviceAssignmentState(value.State), ValidFrom: value.ValidFrom.UTC(), ValidUntil: value.ValidUntil, Version: value.Version, CreatedAt: value.CreatedAt.UTC(), UpdatedAt: value.UpdatedAt.UTC()}
+}
+
+func timeValue(value *time.Time) time.Time {
+	if value == nil {
+		return time.Time{}
+	}
+	return value.UTC()
+}
+
+func auditEntryResponse(value audit.Entry) AuditEntry {
+	response := AuditEntry{
+		Id: value.ID.UUID(), OrganizationId: value.OrganizationID.UUID(), ActorType: value.ActorType,
+		Action: value.Action, SubjectType: value.SubjectType, SubjectId: value.SubjectID,
+		Result: AuditEntryResult(value.Result), OccurredAt: value.OccurredAt,
+		ActorId: optionalAuditString(value.ActorID), EffectiveActorType: optionalAuditString(value.EffectiveActorType),
+		EffectiveActorId: optionalAuditString(value.EffectiveActorID), Reason: optionalAuditString(value.Reason),
+		RequestId: optionalAuditString(value.RequestID), TraceId: optionalAuditString(value.TraceID),
+		SourceIp: optionalAuditString(value.SourceIP), BeforeData: auditDataResponse(value.BeforeData),
+		AfterData: auditDataResponse(value.AfterData),
+	}
+	if value.DeviceID != nil {
+		deviceID := value.DeviceID.UUID()
+		response.DeviceId = &deviceID
+	}
+	return response
+}
+
+func optionalAuditString(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func auditDataResponse(value json.RawMessage) *map[string]interface{} {
+	redacted := audit.RedactJSON(value)
+	if len(redacted) == 0 {
+		return nil
+	}
+	var object map[string]interface{}
+	if err := json.Unmarshal(redacted, &object); err != nil {
+		return nil
+	}
+	return &object
+}
+
 func (s *Server) writeServiceError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, user.ErrInvalid):
@@ -2041,6 +2831,15 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 }
 
 func writeAPIError(w http.ResponseWriter, r *http.Request, status int, code apperror.Code, message string, details []ErrorDetail) {
+	route := r.Pattern
+	if route == "" {
+		route = "unmatched"
+	}
+	if recorder, ok := w.(interface {
+		RecordAPIError(string, string, string)
+	}); ok {
+		recorder.RecordAPIError(r.Method, route, string(code))
+	}
 	requestID := requestid.FromContext(r.Context())
 	if !requestid.Valid(requestID) {
 		requestID = requestid.New()

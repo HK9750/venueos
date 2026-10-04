@@ -10,10 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/HK9750/venueos/internal/audit"
 	"github.com/HK9750/venueos/internal/database"
 	"github.com/HK9750/venueos/internal/organization"
 	organizationpostgres "github.com/HK9750/venueos/internal/organization/postgres"
 	"github.com/HK9750/venueos/internal/platform/identifier"
+	"github.com/HK9750/venueos/internal/platform/inbox"
 	"github.com/HK9750/venueos/internal/platform/jobqueue"
 	"github.com/HK9750/venueos/internal/platform/money"
 	platformpostgres "github.com/HK9750/venueos/internal/platform/postgres"
@@ -115,6 +117,11 @@ func TestAtomicPlatformRecords(t *testing.T) {
 	requireTableCount(t, ctx, pool, "outbox_events", 1)
 	requireTableCount(t, ctx, pool, "idempotency_records", 1)
 	requireOrganizationVersion(t, ctx, pool, organizationID, 2)
+	auditPage, err := store.ListAuditEntries(ctx, audit.ListInput{OrganizationID: organizationID, RequestID: "request-1", Limit: 10})
+	require.NoError(t, err)
+	require.Len(t, auditPage.Items, 1)
+	require.Equal(t, "organization.updated", auditPage.Items[0].Action)
+	require.Equal(t, organizationID, auditPage.Items[0].OrganizationID)
 
 	err = runner.Run(ctx, pgx.TxOptions{}, func(ctx context.Context, tx pgx.Tx) error {
 		txStore := store.WithTx(tx)
@@ -215,6 +222,67 @@ func TestAtomicPlatformRecords(t *testing.T) {
 	require.Equal(t, int64(1), dead)
 	require.NoError(t, pool.QueryRow(ctx, `SELECT state FROM jobs WHERE id = $1`, exhaustedID.UUID()).Scan(&jobState))
 	require.Equal(t, "dead_letter", jobState)
+
+	inboxHash := sha256.Sum256([]byte("provider-event-payload"))
+	inboxID := newID(t)
+	inserted, err = store.InsertInboxMessage(ctx, inbox.Message{
+		ID: inboxID, OrganizationID: &organizationID, Source: "stripe", MessageID: "evt-integration-1",
+		PayloadReference: "payloads/evt-integration-1", PayloadSHA256: inboxHash,
+		AvailableAt: now, ReceivedAt: now, UpdatedAt: now,
+	})
+	require.NoError(t, err)
+	require.True(t, inserted)
+	inserted, err = store.InsertInboxMessage(ctx, inbox.Message{
+		ID: newID(t), OrganizationID: &organizationID, Source: "stripe", MessageID: "evt-integration-1",
+		PayloadReference: "payloads/evt-integration-1", PayloadSHA256: inboxHash,
+		AvailableAt: now, ReceivedAt: now, UpdatedAt: now,
+	})
+	require.NoError(t, err)
+	require.False(t, inserted, "duplicate provider event with the same hash must be acknowledged")
+	conflictingHash := sha256.Sum256([]byte("different-provider-event-payload"))
+	_, err = store.InsertInboxMessage(ctx, inbox.Message{
+		ID: newID(t), OrganizationID: &organizationID, Source: "stripe", MessageID: "evt-integration-1",
+		PayloadReference: "payloads/evt-integration-1", PayloadSHA256: conflictingHash,
+		AvailableAt: now, ReceivedAt: now, UpdatedAt: now,
+	})
+	require.ErrorIs(t, err, inbox.ErrPayloadConflict)
+
+	claimedMessages, err := store.ClaimInboxMessages(ctx, "inbox-worker-a", 10, 3, time.Minute, now)
+	require.NoError(t, err)
+	require.Len(t, claimedMessages, 1)
+	require.Equal(t, int32(1), claimedMessages[0].AttemptCount)
+	claimedInboxByOther, err := store.ClaimInboxMessages(ctx, "inbox-worker-b", 10, 3, time.Minute, now)
+	require.NoError(t, err)
+	require.Empty(t, claimedInboxByOther)
+	require.ErrorIs(t, store.MarkInboxMessageProcessed(ctx, inboxID, "inbox-worker-b", now), inbox.ErrLeaseLost)
+	require.NoError(t, store.RetryInboxMessage(ctx, inboxID, "inbox-worker-a", now, inbox.FailureTransient, "Temporary provider failure."))
+	claimedMessages, err = store.ClaimInboxMessages(ctx, "inbox-worker-b", 10, 3, time.Minute, now)
+	require.NoError(t, err)
+	require.Len(t, claimedMessages, 1)
+	require.Equal(t, int32(2), claimedMessages[0].AttemptCount)
+	require.NoError(t, store.MarkInboxMessageProcessed(ctx, inboxID, "inbox-worker-b", now))
+	var inboxState string
+	require.NoError(t, pool.QueryRow(ctx, `SELECT state FROM inbox_messages WHERE id = $1`, inboxID.UUID()).Scan(&inboxState))
+	require.Equal(t, inbox.StateProcessed, inboxState)
+
+	exhaustedInboxID := newID(t)
+	exhaustedHash := sha256.Sum256([]byte("exhausted-provider-event"))
+	inserted, err = store.InsertInboxMessage(ctx, inbox.Message{
+		ID: exhaustedInboxID, Source: "stripe", MessageID: "evt-integration-2", PayloadSHA256: exhaustedHash,
+		AvailableAt: now, ReceivedAt: now, UpdatedAt: now,
+	})
+	require.NoError(t, err)
+	require.True(t, inserted)
+	claimedMessages, err = store.ClaimInboxMessages(ctx, "inbox-worker-a", 10, 1, time.Minute, now)
+	require.NoError(t, err)
+	require.Len(t, claimedMessages, 1)
+	_, err = pool.Exec(ctx, `UPDATE inbox_messages SET lease_expires_at = now() - interval '1 second' WHERE id = $1`, exhaustedInboxID.UUID())
+	require.NoError(t, err)
+	dead, err = store.DeadLetterExhaustedInboxLeases(ctx, 1, now)
+	require.NoError(t, err)
+	require.Equal(t, int64(1), dead)
+	require.NoError(t, pool.QueryRow(ctx, `SELECT state FROM inbox_messages WHERE id = $1`, exhaustedInboxID.UUID()).Scan(&inboxState))
+	require.Equal(t, inbox.StateDeadLetter, inboxState)
 
 	organizationRepository := organizationpostgres.New(pool, runner)
 	currency, err := money.NewCurrency("USD")

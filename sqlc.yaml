@@ -182,6 +182,86 @@ sql:
               type: Time
   - engine: postgresql
     schema: migrations
+    queries: internal/order/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/order/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/payment/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/payment/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/entry/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/entry/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/refund/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/refund/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
     queries: internal/channel/postgres/query
     gen:
       go:
@@ -247,6 +327,66 @@ sql:
       go:
         package: sqlc
         out: internal/access/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/cart/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/cart/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/device/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/device/postgres/sqlc
+        sql_package: pgx/v5
+        emit_interface: true
+        emit_json_tags: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: uuid
+            go_type:
+              import: github.com/google/uuid
+              type: UUID
+          - db_type: timestamptz
+            go_type:
+              import: time
+              type: Time
+  - engine: postgresql
+    schema: migrations
+    queries: internal/ticket/postgres/query
+    gen:
+      go:
+        package: sqlc
+        out: internal/ticket/postgres/sqlc
         sql_package: pgx/v5
         emit_interface: true
         emit_json_tags: true

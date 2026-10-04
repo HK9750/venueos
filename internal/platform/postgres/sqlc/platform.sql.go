@@ -71,6 +71,84 @@ func (q *Queries) ClaimDueJobSchedule(ctx context.Context, now time.Time) (Claim
 	return i, err
 }
 
+const claimInboxMessages = `-- name: ClaimInboxMessages :many
+WITH candidates AS (
+    SELECT source.id
+    FROM inbox_messages AS source
+    WHERE (
+        (source.state IN ('received', 'failed') AND source.available_at <= $2)
+        OR (source.state = 'processing' AND source.lease_expires_at <= $2)
+    )
+      AND source.attempt_count < $4
+    ORDER BY source.available_at ASC, source.received_at ASC, source.id ASC
+    LIMIT $5
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE inbox_messages AS message
+SET state = 'processing',
+    attempt_count = message.attempt_count + 1,
+    lease_owner = $1,
+    lease_expires_at = $2 + make_interval(secs => $3),
+    processed_at = NULL,
+    updated_at = $2,
+    last_error_code = CASE WHEN message.state = 'processing' THEN 'lease_expired' ELSE message.last_error_code END,
+    last_error_message = CASE WHEN message.state = 'processing' THEN 'Previous inbox lease expired.' ELSE message.last_error_message END
+FROM candidates
+WHERE message.id = candidates.id
+RETURNING message.id, message.organization_id, message.source, message.message_id, message.payload_reference, message.payload_sha256, message.state, message.attempt_count, message.last_error_code, message.last_error_message, message.received_at, message.processed_at, message.updated_at, message.available_at, message.lease_owner, message.lease_expires_at
+`
+
+type ClaimInboxMessagesParams struct {
+	LeaseOwner   pgtype.Text `json:"lease_owner"`
+	Now          time.Time   `json:"now"`
+	LeaseSeconds float64     `json:"lease_seconds"`
+	MaxAttempts  int32       `json:"max_attempts"`
+	BatchSize    int32       `json:"batch_size"`
+}
+
+func (q *Queries) ClaimInboxMessages(ctx context.Context, arg ClaimInboxMessagesParams) ([]InboxMessage, error) {
+	rows, err := q.db.Query(ctx, claimInboxMessages,
+		arg.LeaseOwner,
+		arg.Now,
+		arg.LeaseSeconds,
+		arg.MaxAttempts,
+		arg.BatchSize,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []InboxMessage{}
+	for rows.Next() {
+		var i InboxMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrganizationID,
+			&i.Source,
+			&i.MessageID,
+			&i.PayloadReference,
+			&i.PayloadSha256,
+			&i.State,
+			&i.AttemptCount,
+			&i.LastErrorCode,
+			&i.LastErrorMessage,
+			&i.ReceivedAt,
+			&i.ProcessedAt,
+			&i.UpdatedAt,
+			&i.AvailableAt,
+			&i.LeaseOwner,
+			&i.LeaseExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const claimJobs = `-- name: ClaimJobs :many
 WITH candidates AS (
     SELECT id
@@ -272,6 +350,33 @@ func (q *Queries) CompleteIdempotencyRecord(ctx context.Context, arg CompleteIde
 	return result.RowsAffected(), nil
 }
 
+const deadLetterExhaustedInboxLeases = `-- name: DeadLetterExhaustedInboxLeases :execrows
+UPDATE inbox_messages
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = NULL,
+    last_error_code = 'lease_expired',
+    last_error_message = 'Inbox lease expired after the final attempt.',
+    updated_at = $1
+WHERE state = 'processing'
+  AND lease_expires_at <= $1
+  AND attempt_count >= $2
+`
+
+type DeadLetterExhaustedInboxLeasesParams struct {
+	Now         time.Time `json:"now"`
+	MaxAttempts int32     `json:"max_attempts"`
+}
+
+func (q *Queries) DeadLetterExhaustedInboxLeases(ctx context.Context, arg DeadLetterExhaustedInboxLeasesParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deadLetterExhaustedInboxLeases, arg.Now, arg.MaxAttempts)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deadLetterExhaustedLeases = `-- name: DeadLetterExhaustedLeases :execrows
 UPDATE jobs
 SET state = 'dead_letter',
@@ -314,6 +419,42 @@ type DeadLetterExhaustedOutboxLeasesParams struct {
 
 func (q *Queries) DeadLetterExhaustedOutboxLeases(ctx context.Context, arg DeadLetterExhaustedOutboxLeasesParams) (int64, error) {
 	result, err := q.db.Exec(ctx, deadLetterExhaustedOutboxLeases, arg.Now, arg.MaxAttempts)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deadLetterInboxMessage = `-- name: DeadLetterInboxMessage :execrows
+UPDATE inbox_messages
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = NULL,
+    last_error_code = $1,
+    last_error_message = $2,
+    updated_at = $3
+WHERE id = $4
+  AND state = 'processing'
+  AND lease_owner = $5
+`
+
+type DeadLetterInboxMessageParams struct {
+	ErrorCode      pgtype.Text `json:"error_code"`
+	ErrorMessage   pgtype.Text `json:"error_message"`
+	DeadLetteredAt time.Time   `json:"dead_lettered_at"`
+	ID             uuid.UUID   `json:"id"`
+	LeaseOwner     pgtype.Text `json:"lease_owner"`
+}
+
+func (q *Queries) DeadLetterInboxMessage(ctx context.Context, arg DeadLetterInboxMessageParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deadLetterInboxMessage,
+		arg.ErrorCode,
+		arg.ErrorMessage,
+		arg.DeadLetteredAt,
+		arg.ID,
+		arg.LeaseOwner,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -619,6 +760,64 @@ func (q *Queries) GetIdempotencyRecordForUpdate(ctx context.Context, arg GetIdem
 	return i, err
 }
 
+const getInboxMessageByKey = `-- name: GetInboxMessageByKey :one
+SELECT id, organization_id, source, message_id, payload_reference,
+       payload_sha256, state, attempt_count, available_at, lease_owner,
+       lease_expires_at, last_error_code, last_error_message, received_at,
+       processed_at, updated_at
+FROM inbox_messages
+WHERE source = $1
+  AND message_id = $2
+`
+
+type GetInboxMessageByKeyParams struct {
+	Source    string `json:"source"`
+	MessageID string `json:"message_id"`
+}
+
+type GetInboxMessageByKeyRow struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   pgtype.UUID        `json:"organization_id"`
+	Source           string             `json:"source"`
+	MessageID        string             `json:"message_id"`
+	PayloadReference pgtype.Text        `json:"payload_reference"`
+	PayloadSha256    []byte             `json:"payload_sha256"`
+	State            string             `json:"state"`
+	AttemptCount     int32              `json:"attempt_count"`
+	AvailableAt      time.Time          `json:"available_at"`
+	LeaseOwner       pgtype.Text        `json:"lease_owner"`
+	LeaseExpiresAt   pgtype.Timestamptz `json:"lease_expires_at"`
+	LastErrorCode    pgtype.Text        `json:"last_error_code"`
+	LastErrorMessage pgtype.Text        `json:"last_error_message"`
+	ReceivedAt       time.Time          `json:"received_at"`
+	ProcessedAt      pgtype.Timestamptz `json:"processed_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+}
+
+func (q *Queries) GetInboxMessageByKey(ctx context.Context, arg GetInboxMessageByKeyParams) (GetInboxMessageByKeyRow, error) {
+	row := q.db.QueryRow(ctx, getInboxMessageByKey, arg.Source, arg.MessageID)
+	var i GetInboxMessageByKeyRow
+	err := row.Scan(
+		&i.ID,
+		&i.OrganizationID,
+		&i.Source,
+		&i.MessageID,
+		&i.PayloadReference,
+		&i.PayloadSha256,
+		&i.State,
+		&i.AttemptCount,
+		&i.AvailableAt,
+		&i.LeaseOwner,
+		&i.LeaseExpiresAt,
+		&i.LastErrorCode,
+		&i.LastErrorMessage,
+		&i.ReceivedAt,
+		&i.ProcessedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getJobQueueStats = `-- name: GetJobQueueStats :many
 SELECT job_type,
        count(*)::bigint AS depth,
@@ -762,6 +961,48 @@ func (q *Queries) InsertIdempotencyRecord(ctx context.Context, arg InsertIdempot
 	return result.RowsAffected(), nil
 }
 
+const insertInboxMessage = `-- name: InsertInboxMessage :execrows
+INSERT INTO inbox_messages (
+    id, organization_id, source, message_id, payload_reference, payload_sha256,
+    state, available_at, received_at, updated_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6,
+    'received', $7, $8, $9
+)
+ON CONFLICT (source, message_id)
+DO NOTHING
+`
+
+type InsertInboxMessageParams struct {
+	ID               uuid.UUID   `json:"id"`
+	OrganizationID   pgtype.UUID `json:"organization_id"`
+	Source           string      `json:"source"`
+	MessageID        string      `json:"message_id"`
+	PayloadReference pgtype.Text `json:"payload_reference"`
+	PayloadSha256    []byte      `json:"payload_sha256"`
+	AvailableAt      time.Time   `json:"available_at"`
+	ReceivedAt       time.Time   `json:"received_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+}
+
+func (q *Queries) InsertInboxMessage(ctx context.Context, arg InsertInboxMessageParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertInboxMessage,
+		arg.ID,
+		arg.OrganizationID,
+		arg.Source,
+		arg.MessageID,
+		arg.PayloadReference,
+		arg.PayloadSha256,
+		arg.AvailableAt,
+		arg.ReceivedAt,
+		arg.UpdatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const insertOutboxEvent = `-- name: InsertOutboxEvent :exec
 INSERT INTO outbox_events (
     id, organization_id, aggregate_type, aggregate_id, aggregate_version,
@@ -843,6 +1084,127 @@ func (q *Queries) InsertRealtimeEvent(ctx context.Context, arg InsertRealtimeEve
 	return err
 }
 
+const listAuditEntries = `-- name: ListAuditEntries :many
+SELECT id, organization_id, actor_type, actor_id, effective_actor_type,
+       effective_actor_id, action, subject_type, subject_id, result, reason,
+       request_id, trace_id, source_ip, device_id, before_data, after_data,
+       occurred_at
+FROM audit_entries
+WHERE organization_id = $1
+  AND ($2::text IS NULL OR actor_type = $2::text)
+  AND ($3::text IS NULL OR actor_id = $3::text)
+  AND ($4::text IS NULL OR action = $4::text)
+  AND ($5::text IS NULL OR subject_type = $5::text)
+  AND ($6::text IS NULL OR subject_id = $6::text)
+  AND ($7::text IS NULL OR result = $7::text)
+  AND ($8::text IS NULL OR request_id = $8::text)
+  AND ($9::timestamptz IS NULL OR occurred_at >= $9::timestamptz)
+  AND ($10::timestamptz IS NULL OR occurred_at < $10::timestamptz)
+  AND (
+      $11::timestamptz IS NULL
+      OR (occurred_at, id) < ($11::timestamptz, $12::uuid)
+  )
+ORDER BY occurred_at DESC, id DESC
+LIMIT $13
+`
+
+type ListAuditEntriesParams struct {
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	ActorType        pgtype.Text        `json:"actor_type"`
+	ActorID          pgtype.Text        `json:"actor_id"`
+	Action           pgtype.Text        `json:"action"`
+	SubjectType      pgtype.Text        `json:"subject_type"`
+	SubjectID        pgtype.Text        `json:"subject_id"`
+	Result           pgtype.Text        `json:"result"`
+	RequestID        pgtype.Text        `json:"request_id"`
+	OccurredFrom     pgtype.Timestamptz `json:"occurred_from"`
+	OccurredUntil    pgtype.Timestamptz `json:"occurred_until"`
+	CursorOccurredAt pgtype.Timestamptz `json:"cursor_occurred_at"`
+	CursorID         pgtype.UUID        `json:"cursor_id"`
+	PageLimit        int32              `json:"page_limit"`
+}
+
+func (q *Queries) ListAuditEntries(ctx context.Context, arg ListAuditEntriesParams) ([]AuditEntry, error) {
+	rows, err := q.db.Query(ctx, listAuditEntries,
+		arg.OrganizationID,
+		arg.ActorType,
+		arg.ActorID,
+		arg.Action,
+		arg.SubjectType,
+		arg.SubjectID,
+		arg.Result,
+		arg.RequestID,
+		arg.OccurredFrom,
+		arg.OccurredUntil,
+		arg.CursorOccurredAt,
+		arg.CursorID,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AuditEntry{}
+	for rows.Next() {
+		var i AuditEntry
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrganizationID,
+			&i.ActorType,
+			&i.ActorID,
+			&i.EffectiveActorType,
+			&i.EffectiveActorID,
+			&i.Action,
+			&i.SubjectType,
+			&i.SubjectID,
+			&i.Result,
+			&i.Reason,
+			&i.RequestID,
+			&i.TraceID,
+			&i.SourceIp,
+			&i.DeviceID,
+			&i.BeforeData,
+			&i.AfterData,
+			&i.OccurredAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markInboxMessageProcessed = `-- name: MarkInboxMessageProcessed :execrows
+UPDATE inbox_messages
+SET state = 'processed',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = $1,
+    last_error_code = NULL,
+    last_error_message = NULL,
+    updated_at = $1
+WHERE id = $2
+  AND state = 'processing'
+  AND lease_owner = $3
+`
+
+type MarkInboxMessageProcessedParams struct {
+	ProcessedAt pgtype.Timestamptz `json:"processed_at"`
+	ID          uuid.UUID          `json:"id"`
+	LeaseOwner  pgtype.Text        `json:"lease_owner"`
+}
+
+func (q *Queries) MarkInboxMessageProcessed(ctx context.Context, arg MarkInboxMessageProcessedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markInboxMessageProcessed, arg.ProcessedAt, arg.ID, arg.LeaseOwner)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const markOutboxPublished = `-- name: MarkOutboxPublished :execrows
 UPDATE outbox_events
 SET state = 'published',
@@ -864,6 +1226,43 @@ type MarkOutboxPublishedParams struct {
 
 func (q *Queries) MarkOutboxPublished(ctx context.Context, arg MarkOutboxPublishedParams) (int64, error) {
 	result, err := q.db.Exec(ctx, markOutboxPublished, arg.PublishedAt, arg.ID, arg.LeaseOwner)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const retryInboxMessage = `-- name: RetryInboxMessage :execrows
+UPDATE inbox_messages
+SET state = 'failed',
+    available_at = $1,
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = NULL,
+    last_error_code = $2,
+    last_error_message = $3,
+    updated_at = $1
+WHERE id = $4
+  AND state = 'processing'
+  AND lease_owner = $5
+`
+
+type RetryInboxMessageParams struct {
+	AvailableAt  time.Time   `json:"available_at"`
+	ErrorCode    pgtype.Text `json:"error_code"`
+	ErrorMessage pgtype.Text `json:"error_message"`
+	ID           uuid.UUID   `json:"id"`
+	LeaseOwner   pgtype.Text `json:"lease_owner"`
+}
+
+func (q *Queries) RetryInboxMessage(ctx context.Context, arg RetryInboxMessageParams) (int64, error) {
+	result, err := q.db.Exec(ctx, retryInboxMessage,
+		arg.AvailableAt,
+		arg.ErrorCode,
+		arg.ErrorMessage,
+		arg.ID,
+		arg.LeaseOwner,
+	)
 	if err != nil {
 		return 0, err
 	}

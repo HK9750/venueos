@@ -26,6 +26,36 @@ func New(pool sqlc.DBTX, transactions *database.TransactionRunner) *Repository {
 	return &Repository{queries: sqlc.New(pool), platform: platformpostgres.NewStore(pool), transactions: transactions}
 }
 
+func (repository *Repository) ListAPIKeys(ctx context.Context, organizationID identifier.ID, limit int32, after *access.APIKeyCursor) (access.APIKeyPage, error) {
+	var createdAt time.Time
+	var afterID pgtype.UUID
+	if after != nil {
+		createdAt = after.CreatedAt.UTC()
+		afterID = pgtype.UUID{Bytes: after.ID.UUID(), Valid: true}
+	}
+	rows, err := repository.queries.ListAPIKeys(ctx, sqlc.ListAPIKeysParams{OrganizationID: organizationID.UUID(), AfterCreatedAt: pgtype.Timestamptz{Time: createdAt, Valid: after != nil}, AfterID: afterID, LimitCount: limit + 1})
+	if err != nil {
+		return access.APIKeyPage{}, fmt.Errorf("list API keys: %w", err)
+	}
+	page := access.APIKeyPage{Items: make([]access.APIKey, 0, len(rows))}
+	for index, row := range rows {
+		if int32(index) >= limit {
+			cursorID, mapErr := identifier.FromUUID(row.ID)
+			if mapErr != nil {
+				return access.APIKeyPage{}, fmt.Errorf("map API key cursor ID: %w", mapErr)
+			}
+			page.NextCursor = &access.APIKeyCursor{OrganizationID: organizationID, CreatedAt: row.CreatedAt.UTC(), ID: cursorID}
+			break
+		}
+		mapped, mapErr := mapListedAPIKey(row)
+		if mapErr != nil {
+			return access.APIKeyPage{}, mapErr
+		}
+		page.Items = append(page.Items, mapped)
+	}
+	return page, nil
+}
+
 func (repository *Repository) CreateAPIKey(ctx context.Context, record access.CreateAPIKeyRecord) (access.APIKey, error) {
 	var result access.APIKey
 	err := repository.transactions.Run(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable}, func(ctx context.Context, tx pgx.Tx) error {
@@ -77,7 +107,14 @@ func (repository *Repository) RevokeAPIKey(ctx context.Context, record access.Re
 				return mapErr
 			}
 			result = mapped
-			return access.ErrAPIKeyInactive
+			// Revocation is a terminal command. A client that timed out after
+			// commit may safely retry with the version it originally observed,
+			// while an unrelated stale version still receives a precondition
+			// failure. No second audit or outbox record is emitted.
+			if record.ExpectedVersion == current.Version || record.ExpectedVersion == current.Version-1 {
+				return nil
+			}
+			return access.ErrAPIKeyVersion
 		}
 		if current.Version != record.ExpectedVersion {
 			return access.ErrAPIKeyVersion
@@ -280,6 +317,39 @@ func mapAPIKey(row sqlc.ApiKey) (access.APIKey, error) {
 	result := access.APIKey{ID: id, OrganizationID: organizationID, Prefix: row.Prefix, Name: row.Name, Scopes: scopes,
 		CreatedByType: createdByType.Type(), CreatedByID: createdByType.ID(), Version: row.Version,
 		CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
+	if row.ExpiresAt.Valid {
+		value := row.ExpiresAt.Time
+		result.ExpiresAt = &value
+	}
+	if row.RevokedAt.Valid {
+		value := row.RevokedAt.Time
+		result.RevokedAt = &value
+	}
+	if row.LastUsedAt.Valid {
+		value := row.LastUsedAt.Time
+		result.LastUsedAt = &value
+	}
+	return result, nil
+}
+
+func mapListedAPIKey(row sqlc.ListAPIKeysRow) (access.APIKey, error) {
+	id, err := identifier.FromUUID(row.ID)
+	if err != nil {
+		return access.APIKey{}, fmt.Errorf("map API key ID: %w", err)
+	}
+	organizationID, err := identifier.FromUUID(row.OrganizationID)
+	if err != nil {
+		return access.APIKey{}, fmt.Errorf("map API key organization ID: %w", err)
+	}
+	createdByType, err := access.NewPrincipal(access.PrincipalType(row.CreatedByType), row.CreatedByID)
+	if err != nil {
+		return access.APIKey{}, fmt.Errorf("map API key creator: %w", err)
+	}
+	scopes := make([]access.Permission, 0, len(row.Scopes))
+	for _, scope := range row.Scopes {
+		scopes = append(scopes, access.Permission(scope))
+	}
+	result := access.APIKey{ID: id, OrganizationID: organizationID, Prefix: row.Prefix, Name: row.Name, Scopes: scopes, CreatedByType: createdByType.Type(), CreatedByID: createdByType.ID(), Version: row.Version, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}
 	if row.ExpiresAt.Valid {
 		value := row.ExpiresAt.Time
 		result.ExpiresAt = &value

@@ -99,6 +99,7 @@ than trusting application pre-checks alone.
 | Table | Key columns and constraints |
 |---|---|
 | `entitlements` | organization/order line/session, unit sequence, seat/pool ref, state; unique line + unit |
+| `ticket_signing_keys` | durable public verification key, key ID/state/version, activation and revocation timestamps; private signing material stays in the secret/KMS adapter |
 | `tickets` | organization/entitlement unique, public reference unique, state, version, signing key ID, issued/admitted/void times |
 | `ticket_artifacts` | ticket + version + artifact type unique, object key/checksum/status |
 | `delivery_attempts` | organization, subject type/ID, channel, recipient hash, template/version, provider ref, state/attempt/next retry |
@@ -210,7 +211,51 @@ advances a due schedule and enqueues its durable job atomically.
 The worker also prunes expired `realtime_events` rows in bounded batches.
 `00019_create_api_keys.sql` adds tenant-scoped, show-once API-key credential
 metadata. Only the fixed-length SHA-256 verifier is stored; plaintext tokens are
-never persisted or included in audit/outbox payloads.
+never persisted or included in audit/outbox payloads. Migration
+`00020_add_inbox_leases.sql` adds bounded availability and owner lease fields for
+provider inbound messages, with claim and expired-lease indexes plus a checked
+processing lease state. The inbox repository compares duplicate payload hashes and
+rejects the same provider message ID when its payload changes.
+Migration `00021_create_carts.sql` adds the first durable commerce slice: a
+tenant/session/hold-scoped cart with owner-token hash, optional user reference,
+currency, checked active/terminal states, bounded PII-free quote JSON and digest,
+optimistic version, and active-hold uniqueness. The cart repository locks the
+owner hold before create/update, uses database time for expiry checks, and records
+cart audit/outbox mutations atomically. It adds a tenant-qualified hold key for
+the cart foreign key. Migration `00022_create_orders.sql` adds tenant-scoped
+payment-pending orders, immutable quote-backed order lines, and provider-neutral
+payment attempts with bounded metadata/failure fields and provider-object
+idempotency constraints. Order creation locks the cart and hold, checks out the
+cart, and records order/cart audit/outbox mutations atomically; confirmation,
+provider execution, and customer/promotion fields remain later policy-bound
+changes.
+Migration `00024_create_refunds.sql` adds tenant/order/payment-scoped refund
+requests with idempotency, provider-reference uniqueness, bounded reasons, and
+checked lifecycle states. The repository locks the order and captured payment
+attempt before applying the cumulative refund ceiling; provider execution and
+reconciliation are worker concerns.
+Migration `00025_preserve_quote_snapshot_bytes.sql` adds raw byte columns for
+cart/order quote snapshots. JSONB remains queryable and constrained, while the
+raw bytes are the digest authority so PostgreSQL key-order normalization cannot
+turn a valid stored quote into a false integrity failure.
+Migration `00023_create_tickets_and_entry.sql` adds entitlement/ticket state,
+basic device records, append-only online scan attempts, and exactly-once admission
+constraints. The online entry repository locks the device and ticket, records
+safe credential hashes rather than raw QR data, and emits audit/outbox mutations
+for scans and first admission. Tenant-scoped device enrollment and lifecycle
+commands now hash credentials and commit audit/outbox records atomically;
+`00026_create_device_assignments.sql` adds tenant/session/gate/capability-scoped
+assignments with validity and version checks. Online scan authorization requires an
+active `entry.scan` assignment matching the session and optional gate; offline manifests,
+issuance artifacts, and delivery remain separate follow-up migrations.
+Migration `00027_create_ticket_signing_keys.sql` adds the durable public-key
+verification authority used by API scan verification. It stores rotation state but
+never stores private signing material; key registration/activation remains behind
+the secret or KMS adapter boundary.
+Ticket issuance uses the existing entitlement/ticket constraints: a serializable
+repository locks the entitlement, inserts one valid ticket, marks the entitlement
+issued, and writes `ticket.issued` audit/outbox records. A retry finds the unique
+entitlement ticket and returns it without duplicating the mutation evidence.
 
 Claim jobs/events with `FOR UPDATE SKIP LOCKED`, a lease expiry, bounded batch size,
 and commit before execution. A unique dedupe key prevents logically duplicate jobs.

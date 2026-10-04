@@ -4,6 +4,19 @@ FROM organizations
 WHERE id = sqlc.arg(id)
 FOR UPDATE;
 
+-- name: ListAPIKeys :many
+SELECT id, organization_id, prefix, name, scopes,
+       created_by_type, created_by_id, expires_at, revoked_at,
+       last_used_at, version, created_at, updated_at
+FROM api_keys
+WHERE organization_id = sqlc.arg(organization_id)
+  AND (
+      sqlc.narg(after_created_at)::timestamptz IS NULL
+      OR (created_at, id) < (sqlc.narg(after_created_at)::timestamptz, sqlc.narg(after_id)::uuid)
+  )
+ORDER BY created_at DESC, id DESC
+LIMIT sqlc.arg(limit_count);
+
 -- name: InsertAPIKey :one
 INSERT INTO api_keys (
     id, organization_id, prefix, name, secret_hash, scopes,

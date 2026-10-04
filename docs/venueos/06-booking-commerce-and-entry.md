@@ -113,6 +113,27 @@ Price calculation order is explicit and versioned:
 The algorithm returns a component-level explanation and snapshots it on checkout.
 Promo codes, client totals, labels, or cached prices never override server pricing.
 
+`pricing.CalculateQuote` now implements the provider-neutral arithmetic boundary:
+it extends immutable line price snapshots with checked integer multiplication,
+normalizes line/component order, applies an explicit discount, then explicit fees
+and taxes, and returns a SHA-256 snapshot digest. It does not select tax rates,
+fee semantics, promotions, or rounding policy; those inputs remain owned by the
+event/jurisdiction policy layer and must be supplied explicitly.
+
+The durable `internal/cart` slice now creates and owner-reads one active cart per
+hold under organization/session scope, locks the active hold with database time,
+stores only a PII-free quote snapshot and digest, and updates quotes with an
+expected-version check. Create/update mutations append audit and outbox records in
+the same transaction. The durable `internal/order` slice now locks that cart and
+hold, validates database-time expiry and currency, copies immutable quote lines,
+checks the cart out, and records the order/cart audit and outbox events in one
+serializable transaction. Guest/customer contact, promotion selection, provider
+execution, and confirmation remain intentionally separate while Q-P02/Q-P03 and
+the provider/capture decisions remain open.
+The JSONB quote remains available for bounded inspection, but the repositories
+also persist the exact raw snapshot bytes used for SHA-256 so JSONB normalization
+cannot invalidate a cart/order integrity check.
+
 ## Checkout and Orders
 
 ### Checkout Sequence
@@ -149,6 +170,14 @@ and blocks unsafe automatic guesses.
 Order numbers are human-readable, tenant-unique, non-enumerable enough for support,
 but never serve as sole customer authorization. Database IDs remain opaque UUIDs.
 
+The provider-neutral `internal/order` package now encodes the documented order
+and payment transition tables. It accepts same-state delivery as a no-op for
+webhook idempotency and rejects illegal rollback from terminal/financial states.
+The durable order creation transaction now locks the tenant-scoped cart and hold,
+appends order and cart audit/outbox results, and stores immutable order lines. It
+does not call a remote provider or consume inventory; those actions remain in the
+confirmation workflow and must be added with the documented stable lock order.
+
 ## Payments
 
 Payment attempts have states `created`, `requires_action`, `processing`,
@@ -158,6 +187,30 @@ timestamps, and sanitized provider metadata.
 
 Raw card/bank details never pass through or persist in VenueOS. The provider's
 hosted/tokenized component handles payment instruments.
+
+The provider-neutral `internal/payment` boundary now validates positive integer
+minor-unit intent/refund requests and bounded idempotency/provider references. Its
+adapter returns sanitized intent facts and verified webhook metadata with payload
+hash/reference for `internal/platform/inbox`; raw provider bodies and payment
+instruments remain outside the domain. Migration `00022_create_orders.sql` adds
+tenant-scoped orders, immutable order lines, and payment-attempt rows with bounded
+provider references, status/failure checks, and sanitized metadata. Capture mode
+and tenant account selection remain open decisions.
+
+The durable refund request boundary now locks the order and captured payment
+attempt, counts pending and successful refunds, applies `refund.ValidateAmount`
+under that lock, and records a `requested` refund plus audit/outbox mutation in
+one transaction. The execution repository transitions `requested -> processing`
+under the same durable authority, then the provider-neutral execution service
+calls the injected adapter outside the transaction with the stable refund
+idempotency key and finalizes verified success/failure states. Transient and
+unknown provider failures remain retryable for reconciliation; it stores no raw
+provider response. The protected `POST
+/v1/organizations/{organization_id}/orders/{order_id}/refunds` transport now
+requires `order.refund`, derives tenant and actor scope from verified
+authorization, and accepts a required idempotency key. Repeating the same key
+and request details returns the original durable refund without another
+audit/outbox mutation; reusing it with different details is a conflict.
 
 ### Webhook Processing
 
@@ -204,6 +257,14 @@ Rules:
 - a refund can succeed even if customer notification fails; delivery retries remain
   separate.
 
+The provider-neutral `internal/refund` package now enforces currency matching,
+positive requested amounts, and the invariant that pending plus successful
+refunds cannot exceed captured value. Its lifecycle transition helper accepts
+same-state replay and rejects terminal rollback. The strict `refund.execute` job
+payload and worker adapter preserve tenant scope and provider failure classes;
+refund policy, ticket behavior, reconciliation, and concrete provider wiring
+remain application decisions.
+
 Cancelling a session creates a durable batch workflow that freezes sales, selects
 affected orders in pages, creates idempotent refund/notification tasks, tracks
 progress, and supports resume. It never performs thousands of provider calls in an
@@ -221,9 +282,22 @@ ticket ID/reference, version, key ID, and limited context; it contains no custom
 PII or price. Verification checks algorithm allowlist, signature, key state,
 ticket/version, session, validity window, and server-side current status.
 
-Issuance is an idempotent worker keyed by entitlement. Rendering PDF/wallet assets
-is separate from credential issuance. Asset failure leaves a valid ticket retrievable
-as data and visible as a fulfilment issue.
+The provider-neutral `internal/ticket` package implements the first part of this
+contract as a bounded `vos-ticket.v1` credential. It signs only the ticket ID,
+session ID, ticket version, key ID, algorithm/version, and validity window with
+Ed25519. Active and verify-only keys can verify during rotation; revoked keys are
+rejected. The verifier does not decide ticket status or admission: the scan
+transaction must still load and lock the current organization-scoped ticket.
+
+Issuance is an idempotent worker keyed by entitlement. The current
+`internal/ticket` application service locks that entitlement, creates the durable
+ticket exactly once, signs the bounded credential, and returns the existing ticket
+on retry without duplicating audit/outbox evidence. Its strict version-one job
+payload carries only immutable tenant/order/session facts and is checked against
+the leased job tenant before execution. Rendering PDF/wallet assets is
+separate from credential issuance. Asset failure leaves a valid ticket retrievable
+as data and visible as a fulfilment issue; signer/KMS registration and delivery
+adapters remain separate.
 
 Delivery has independent attempts by channel. Each attempt stores template/version,
 recipient hash/redacted address, locale, provider ID, status, classified error, and
@@ -242,6 +316,26 @@ new ticket unless a revoke/reissue command was explicitly used.
 6. For valid first use, set ticket admitted and create admission record atomically.
 7. Commit, emit entry event, and return a stable result code plus safe display data.
 
+The provider-neutral `internal/entry` decision boundary now implements the
+post-verification checks for ticket identity, session, credential version, entry
+window, and current mutable status. It returns only the documented safe result
+codes and never mutates state. Its application service requires a verified device
+principal and `entry.scan` permission, verifies the signed credential through the
+ticket adapter, hashes the raw credential, and derives actor/device scope from
+authorization context before calling the repository. The database scan
+transaction remains responsible for recording every attempt and resolving
+concurrent first admissions. The `internal/entry/postgres` adapter now locks an
+organization-scoped active device, requires an active session/gate assignment for
+the scan scope, and then locks the ticket, inserts the scan attempt, and atomically
+creates the unique admission with audit/outbox events. Duplicate device scan IDs
+replay only the original result. The tenant device-management slice now supports
+one-time credential enrollment plus versioned suspend/reactivate/revoke commands,
+and session/gate assignment with capability and validity bounds. Migration `00027`
+now provides durable public ticket-key resolution, and `POST /v1/device/scans`
+exposes the authenticated scan application service with a safe result contract.
+Worker/signer wiring, private signing-key registration, and delivery remain
+separate adapter-backed work; offline manifests remain deferred.
+
 Result codes include `admitted`, `already_admitted`, `invalid_signature`,
 `unknown_ticket`, `wrong_session`, `outside_entry_window`, `void`, `refunded`,
 `expired`, `device_not_authorized`, and `override_required`. Scanner UI derives
@@ -250,6 +344,13 @@ color/sound from code but does not decide validity.
 Duplicate requests with the same device scan ID replay the original result. Two
 devices racing on the same ticket yield one admission and one already-admitted
 result, never two admissions.
+
+Staff entry operations now have a bounded tenant-scoped summary endpoint. It
+aggregates immutable scan attempts by result, gate, minute, and price-tier
+ticket type for an explicit window of at most 31 days. The response includes the
+database generation time, latest received scan time, and non-negative data-delay
+indicator so dashboards cannot present stale totals as real time. It is a read
+projection only; scan attempts and admissions remain the authority.
 
 ### Offline Mode
 

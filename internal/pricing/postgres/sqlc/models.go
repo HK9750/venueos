@@ -12,6 +12,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Admission struct {
+	ID              uuid.UUID   `json:"id"`
+	OrganizationID  uuid.UUID   `json:"organization_id"`
+	TicketID        uuid.UUID   `json:"ticket_id"`
+	ScanAttemptID   uuid.UUID   `json:"scan_attempt_id"`
+	SessionID       uuid.UUID   `json:"session_id"`
+	DeviceID        uuid.UUID   `json:"device_id"`
+	GateID          pgtype.UUID `json:"gate_id"`
+	AdmittedAt      time.Time   `json:"admitted_at"`
+	OverrideActorID pgtype.Text `json:"override_actor_id"`
+	OverrideReason  pgtype.Text `json:"override_reason"`
+}
+
 type ApiKey struct {
 	ID             uuid.UUID          `json:"id"`
 	OrganizationID uuid.UUID          `json:"organization_id"`
@@ -48,6 +61,64 @@ type AuditEntry struct {
 	BeforeData         []byte      `json:"before_data"`
 	AfterData          []byte      `json:"after_data"`
 	OccurredAt         time.Time   `json:"occurred_at"`
+}
+
+type Cart struct {
+	ID               uuid.UUID   `json:"id"`
+	OrganizationID   uuid.UUID   `json:"organization_id"`
+	SessionID        uuid.UUID   `json:"session_id"`
+	HoldID           uuid.UUID   `json:"hold_id"`
+	OwnerTokenHash   []byte      `json:"owner_token_hash"`
+	OwnerUserID      pgtype.UUID `json:"owner_user_id"`
+	Currency         string      `json:"currency"`
+	State            string      `json:"state"`
+	QuoteSnapshot    []byte      `json:"quote_snapshot"`
+	QuoteSha256      []byte      `json:"quote_sha256"`
+	Version          int64       `json:"version"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+	QuoteSnapshotRaw []byte      `json:"quote_snapshot_raw"`
+}
+
+type Device struct {
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	VenueID        uuid.UUID          `json:"venue_id"`
+	Name           string             `json:"name"`
+	Platform       string             `json:"platform"`
+	AppVersion     string             `json:"app_version"`
+	CredentialHash []byte             `json:"credential_hash"`
+	State          string             `json:"state"`
+	LastSeenAt     pgtype.Timestamptz `json:"last_seen_at"`
+	Version        int64              `json:"version"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+}
+
+type DeviceAssignment struct {
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	DeviceID       uuid.UUID          `json:"device_id"`
+	SessionID      pgtype.UUID        `json:"session_id"`
+	GateID         pgtype.UUID        `json:"gate_id"`
+	Capability     string             `json:"capability"`
+	State          string             `json:"state"`
+	ValidFrom      time.Time          `json:"valid_from"`
+	ValidUntil     pgtype.Timestamptz `json:"valid_until"`
+	Version        int64              `json:"version"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+}
+
+type Entitlement struct {
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	OrderLineID    uuid.UUID `json:"order_line_id"`
+	SessionID      uuid.UUID `json:"session_id"`
+	UnitNumber     int32     `json:"unit_number"`
+	State          string    `json:"state"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 type Event struct {
@@ -173,6 +244,9 @@ type InboxMessage struct {
 	ReceivedAt       time.Time          `json:"received_at"`
 	ProcessedAt      pgtype.Timestamptz `json:"processed_at"`
 	UpdatedAt        time.Time          `json:"updated_at"`
+	AvailableAt      time.Time          `json:"available_at"`
+	LeaseOwner       pgtype.Text        `json:"lease_owner"`
+	LeaseExpiresAt   pgtype.Timestamptz `json:"lease_expires_at"`
 }
 
 type Invitation struct {
@@ -246,6 +320,44 @@ type Membership struct {
 	RevokedAt      pgtype.Timestamptz `json:"revoked_at"`
 }
 
+type Order struct {
+	ID               uuid.UUID          `json:"id"`
+	OrganizationID   uuid.UUID          `json:"organization_id"`
+	CartID           uuid.UUID          `json:"cart_id"`
+	SessionID        uuid.UUID          `json:"session_id"`
+	HoldID           uuid.UUID          `json:"hold_id"`
+	OrderNumber      string             `json:"order_number"`
+	OwnerTokenHash   []byte             `json:"owner_token_hash"`
+	OwnerUserID      pgtype.UUID        `json:"owner_user_id"`
+	Currency         string             `json:"currency"`
+	State            string             `json:"state"`
+	SubtotalMinor    int64              `json:"subtotal_minor"`
+	DiscountMinor    int64              `json:"discount_minor"`
+	FeesMinor        int64              `json:"fees_minor"`
+	TaxesMinor       int64              `json:"taxes_minor"`
+	TotalMinor       int64              `json:"total_minor"`
+	QuoteSnapshot    []byte             `json:"quote_snapshot"`
+	QuoteSha256      []byte             `json:"quote_sha256"`
+	Version          int64              `json:"version"`
+	CreatedAt        time.Time          `json:"created_at"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	ConfirmedAt      pgtype.Timestamptz `json:"confirmed_at"`
+	QuoteSnapshotRaw []byte             `json:"quote_snapshot_raw"`
+}
+
+type OrderLine struct {
+	ID             uuid.UUID `json:"id"`
+	OrganizationID uuid.UUID `json:"organization_id"`
+	OrderID        uuid.UUID `json:"order_id"`
+	LineNumber     int32     `json:"line_number"`
+	PriceTierID    uuid.UUID `json:"price_tier_id"`
+	Quantity       int64     `json:"quantity"`
+	UnitMinor      int64     `json:"unit_minor"`
+	SubtotalMinor  int64     `json:"subtotal_minor"`
+	Snapshot       []byte    `json:"snapshot"`
+	CreatedAt      time.Time `json:"created_at"`
+}
+
 type Organization struct {
 	ID              uuid.UUID `json:"id"`
 	Slug            string    `json:"slug"`
@@ -283,6 +395,26 @@ type OutboxEvent struct {
 	CreatedAt        time.Time          `json:"created_at"`
 }
 
+type PaymentAttempt struct {
+	ID                    uuid.UUID   `json:"id"`
+	OrganizationID        uuid.UUID   `json:"organization_id"`
+	OrderID               uuid.UUID   `json:"order_id"`
+	Provider              string      `json:"provider"`
+	ProviderObjectID      pgtype.Text `json:"provider_object_id"`
+	AmountMinor           int64       `json:"amount_minor"`
+	Currency              string      `json:"currency"`
+	State                 string      `json:"state"`
+	IdempotencyKey        string      `json:"idempotency_key"`
+	FailureClass          pgtype.Text `json:"failure_class"`
+	FailureCode           pgtype.Text `json:"failure_code"`
+	FailureMessage        pgtype.Text `json:"failure_message"`
+	ClientActionReference pgtype.Text `json:"client_action_reference"`
+	Metadata              []byte      `json:"metadata"`
+	Version               int64       `json:"version"`
+	CreatedAt             time.Time   `json:"created_at"`
+	UpdatedAt             time.Time   `json:"updated_at"`
+}
+
 type PriceTier struct {
 	ID              uuid.UUID          `json:"id"`
 	OrganizationID  uuid.UUID          `json:"organization_id"`
@@ -314,6 +446,24 @@ type RealtimeEvent struct {
 	RetentionExpiresAt time.Time `json:"retention_expires_at"`
 }
 
+type Refund struct {
+	ID               uuid.UUID   `json:"id"`
+	OrganizationID   uuid.UUID   `json:"organization_id"`
+	OrderID          uuid.UUID   `json:"order_id"`
+	PaymentAttemptID uuid.UUID   `json:"payment_attempt_id"`
+	AmountMinor      int64       `json:"amount_minor"`
+	Currency         string      `json:"currency"`
+	State            string      `json:"state"`
+	IdempotencyKey   string      `json:"idempotency_key"`
+	Reason           string      `json:"reason"`
+	ActorType        string      `json:"actor_type"`
+	ActorID          pgtype.Text `json:"actor_id"`
+	ProviderRefundID pgtype.Text `json:"provider_refund_id"`
+	Version          int64       `json:"version"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+}
+
 type SalesChannel struct {
 	ID             uuid.UUID `json:"id"`
 	OrganizationID uuid.UUID `json:"organization_id"`
@@ -325,6 +475,23 @@ type SalesChannel struct {
 	Version        int64     `json:"version"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+type ScanAttempt struct {
+	ID               uuid.UUID   `json:"id"`
+	OrganizationID   uuid.UUID   `json:"organization_id"`
+	SessionID        uuid.UUID   `json:"session_id"`
+	TicketID         uuid.UUID   `json:"ticket_id"`
+	DeviceID         uuid.UUID   `json:"device_id"`
+	DeviceScanID     string      `json:"device_scan_id"`
+	TicketVersion    int64       `json:"ticket_version"`
+	Result           string      `json:"result"`
+	Mode             string      `json:"mode"`
+	CredentialSha256 []byte      `json:"credential_sha256"`
+	GateID           pgtype.UUID `json:"gate_id"`
+	ScannedAt        time.Time   `json:"scanned_at"`
+	ReceivedAt       time.Time   `json:"received_at"`
+	Metadata         []byte      `json:"metadata"`
 }
 
 type SeatMapVersion struct {
@@ -431,6 +598,40 @@ type Space struct {
 	Version          int64     `json:"version"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+type Ticket struct {
+	ID              uuid.UUID          `json:"id"`
+	OrganizationID  uuid.UUID          `json:"organization_id"`
+	EntitlementID   uuid.UUID          `json:"entitlement_id"`
+	OrderLineID     uuid.UUID          `json:"order_line_id"`
+	SessionID       uuid.UUID          `json:"session_id"`
+	PublicReference string             `json:"public_reference"`
+	State           string             `json:"state"`
+	Version         int64              `json:"version"`
+	SigningKeyID    string             `json:"signing_key_id"`
+	NotBefore       time.Time          `json:"not_before"`
+	ExpiresAt       time.Time          `json:"expires_at"`
+	EntryOpensAt    time.Time          `json:"entry_opens_at"`
+	EntryClosesAt   time.Time          `json:"entry_closes_at"`
+	IssuedAt        time.Time          `json:"issued_at"`
+	AdmittedAt      pgtype.Timestamptz `json:"admitted_at"`
+	VoidAt          pgtype.Timestamptz `json:"void_at"`
+	RefundedAt      pgtype.Timestamptz `json:"refunded_at"`
+	ExpiredAt       pgtype.Timestamptz `json:"expired_at"`
+	CreatedAt       time.Time          `json:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+}
+
+type TicketSigningKey struct {
+	KeyID       string             `json:"key_id"`
+	PublicKey   []byte             `json:"public_key"`
+	State       string             `json:"state"`
+	Version     int64              `json:"version"`
+	ActivatedAt time.Time          `json:"activated_at"`
+	RevokedAt   pgtype.Timestamptz `json:"revoked_at"`
+	CreatedAt   time.Time          `json:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
 type User struct {

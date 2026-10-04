@@ -11,11 +11,14 @@ import (
 
 type Querier interface {
 	ClaimDueJobSchedule(ctx context.Context, now time.Time) (ClaimDueJobScheduleRow, error)
+	ClaimInboxMessages(ctx context.Context, arg ClaimInboxMessagesParams) ([]InboxMessage, error)
 	ClaimJobs(ctx context.Context, arg ClaimJobsParams) ([]Job, error)
 	ClaimOutboxEvents(ctx context.Context, arg ClaimOutboxEventsParams) ([]OutboxEvent, error)
 	CompleteIdempotencyRecord(ctx context.Context, arg CompleteIdempotencyRecordParams) (int64, error)
+	DeadLetterExhaustedInboxLeases(ctx context.Context, arg DeadLetterExhaustedInboxLeasesParams) (int64, error)
 	DeadLetterExhaustedLeases(ctx context.Context) (int64, error)
 	DeadLetterExhaustedOutboxLeases(ctx context.Context, arg DeadLetterExhaustedOutboxLeasesParams) (int64, error)
+	DeadLetterInboxMessage(ctx context.Context, arg DeadLetterInboxMessageParams) (int64, error)
 	DeadLetterJob(ctx context.Context, arg DeadLetterJobParams) (int64, error)
 	DeadLetterOutboxEvent(ctx context.Context, arg DeadLetterOutboxEventParams) (int64, error)
 	DeleteExpiredIdempotencyRecords(ctx context.Context, arg DeleteExpiredIdempotencyRecordsParams) (int64, error)
@@ -24,12 +27,17 @@ type Querier interface {
 	EnsureJobSchedule(ctx context.Context, arg EnsureJobScheduleParams) error
 	ExtendJobLease(ctx context.Context, arg ExtendJobLeaseParams) (int64, error)
 	GetIdempotencyRecordForUpdate(ctx context.Context, arg GetIdempotencyRecordForUpdateParams) (IdempotencyRecord, error)
+	GetInboxMessageByKey(ctx context.Context, arg GetInboxMessageByKeyParams) (GetInboxMessageByKeyRow, error)
 	GetJobQueueStats(ctx context.Context, jobTypes []string) ([]GetJobQueueStatsRow, error)
 	InsertAuditEntry(ctx context.Context, arg InsertAuditEntryParams) error
 	InsertIdempotencyRecord(ctx context.Context, arg InsertIdempotencyRecordParams) (int64, error)
+	InsertInboxMessage(ctx context.Context, arg InsertInboxMessageParams) (int64, error)
 	InsertOutboxEvent(ctx context.Context, arg InsertOutboxEventParams) error
 	InsertRealtimeEvent(ctx context.Context, arg InsertRealtimeEventParams) error
+	ListAuditEntries(ctx context.Context, arg ListAuditEntriesParams) ([]AuditEntry, error)
+	MarkInboxMessageProcessed(ctx context.Context, arg MarkInboxMessageProcessedParams) (int64, error)
 	MarkOutboxPublished(ctx context.Context, arg MarkOutboxPublishedParams) (int64, error)
+	RetryInboxMessage(ctx context.Context, arg RetryInboxMessageParams) (int64, error)
 	RetryJob(ctx context.Context, arg RetryJobParams) (int64, error)
 	RetryOutboxEvent(ctx context.Context, arg RetryOutboxEventParams) (int64, error)
 	SucceedJob(ctx context.Context, arg SucceedJobParams) (int64, error)

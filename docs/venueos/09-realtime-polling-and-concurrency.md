@@ -16,7 +16,13 @@ session-sequenced `availability.changed` rows atomically for hold create, releas
 and expiry, and exposes consistent PostgreSQL snapshot/replay repository reads.
 Tenant-scoped authenticated staff snapshot/replay routes are now available;
 public storefront routes remain pending until tenant-resolution and guest-policy
-decisions are closed.
+decisions are closed. The staff snapshot route now emits an ETag derived from
+the session and inventory revision and returns `304 Not Modified` for a matching
+`If-None-Match`, so conditional polling does not reserialize unchanged inventory.
+The bounded `internal/realtime` hub now fans out committed events in-process with
+per-subscription queues and disconnects slow consumers with an explicit resync
+signal. It is a latency optimization only; reconnect/recovery still uses the
+PostgreSQL replay endpoint, and a Redis/WebSocket transport adapter remains.
 
 ## Availability Versions and Event Creation
 

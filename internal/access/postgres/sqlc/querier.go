@@ -14,6 +14,7 @@ type Querier interface {
 	GetAPIKey(ctx context.Context, arg GetAPIKeyParams) (ApiKey, error)
 	GetAPIKeyForUpdate(ctx context.Context, arg GetAPIKeyForUpdateParams) (ApiKey, error)
 	InsertAPIKey(ctx context.Context, arg InsertAPIKeyParams) (ApiKey, error)
+	ListAPIKeys(ctx context.Context, arg ListAPIKeysParams) ([]ListAPIKeysRow, error)
 	LockOrganizationForAPIKey(ctx context.Context, id uuid.UUID) (LockOrganizationForAPIKeyRow, error)
 	LookupAPIKeyByPrefix(ctx context.Context, prefix string) (ApiKey, error)
 	RevokeAPIKey(ctx context.Context, arg RevokeAPIKeyParams) (ApiKey, error)

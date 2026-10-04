@@ -22,6 +22,27 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// Defines values for AuditEntryResult.
+const (
+	AuditEntryResultDenied  AuditEntryResult = "denied"
+	AuditEntryResultFailure AuditEntryResult = "failure"
+	AuditEntryResultSuccess AuditEntryResult = "success"
+)
+
+// Valid indicates whether the value is a known member of the AuditEntryResult enum.
+func (e AuditEntryResult) Valid() bool {
+	switch e {
+	case AuditEntryResultDenied:
+		return true
+	case AuditEntryResultFailure:
+		return true
+	case AuditEntryResultSuccess:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AvailabilitySeatState.
 const (
 	Available AvailabilitySeatState = "available"
@@ -43,6 +64,138 @@ func (e AvailabilitySeatState) Valid() bool {
 	case Killed:
 		return true
 	case Sold:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ChangeDeviceStateState.
+const (
+	ChangeDeviceStateStateActive    ChangeDeviceStateState = "active"
+	ChangeDeviceStateStateRevoked   ChangeDeviceStateState = "revoked"
+	ChangeDeviceStateStateSuspended ChangeDeviceStateState = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the ChangeDeviceStateState enum.
+func (e ChangeDeviceStateState) Valid() bool {
+	switch e {
+	case ChangeDeviceStateStateActive:
+		return true
+	case ChangeDeviceStateStateRevoked:
+		return true
+	case ChangeDeviceStateStateSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateDeviceAssignmentCapability.
+const (
+	CreateDeviceAssignmentCapabilityEntryOverride CreateDeviceAssignmentCapability = "entry.override"
+	CreateDeviceAssignmentCapabilityEntryScan     CreateDeviceAssignmentCapability = "entry.scan"
+)
+
+// Valid indicates whether the value is a known member of the CreateDeviceAssignmentCapability enum.
+func (e CreateDeviceAssignmentCapability) Valid() bool {
+	switch e {
+	case CreateDeviceAssignmentCapabilityEntryOverride:
+		return true
+	case CreateDeviceAssignmentCapabilityEntryScan:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeviceState.
+const (
+	DeviceStateActive    DeviceState = "active"
+	DeviceStateRevoked   DeviceState = "revoked"
+	DeviceStateSuspended DeviceState = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the DeviceState enum.
+func (e DeviceState) Valid() bool {
+	switch e {
+	case DeviceStateActive:
+		return true
+	case DeviceStateRevoked:
+		return true
+	case DeviceStateSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeviceAssignmentCapability.
+const (
+	DeviceAssignmentCapabilityEntryOverride DeviceAssignmentCapability = "entry.override"
+	DeviceAssignmentCapabilityEntryScan     DeviceAssignmentCapability = "entry.scan"
+)
+
+// Valid indicates whether the value is a known member of the DeviceAssignmentCapability enum.
+func (e DeviceAssignmentCapability) Valid() bool {
+	switch e {
+	case DeviceAssignmentCapabilityEntryOverride:
+		return true
+	case DeviceAssignmentCapabilityEntryScan:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeviceAssignmentState.
+const (
+	DeviceAssignmentStateActive  DeviceAssignmentState = "active"
+	DeviceAssignmentStateRevoked DeviceAssignmentState = "revoked"
+)
+
+// Valid indicates whether the value is a known member of the DeviceAssignmentState enum.
+func (e DeviceAssignmentState) Valid() bool {
+	switch e {
+	case DeviceAssignmentStateActive:
+		return true
+	case DeviceAssignmentStateRevoked:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeviceScanResultDecision.
+const (
+	DeviceScanResultDecisionAdmitted           DeviceScanResultDecision = "admitted"
+	DeviceScanResultDecisionAlreadyAdmitted    DeviceScanResultDecision = "already_admitted"
+	DeviceScanResultDecisionExpired            DeviceScanResultDecision = "expired"
+	DeviceScanResultDecisionOutsideEntryWindow DeviceScanResultDecision = "outside_entry_window"
+	DeviceScanResultDecisionRefunded           DeviceScanResultDecision = "refunded"
+	DeviceScanResultDecisionUnknownTicket      DeviceScanResultDecision = "unknown_ticket"
+	DeviceScanResultDecisionVoid               DeviceScanResultDecision = "void"
+	DeviceScanResultDecisionWrongSession       DeviceScanResultDecision = "wrong_session"
+)
+
+// Valid indicates whether the value is a known member of the DeviceScanResultDecision enum.
+func (e DeviceScanResultDecision) Valid() bool {
+	switch e {
+	case DeviceScanResultDecisionAdmitted:
+		return true
+	case DeviceScanResultDecisionAlreadyAdmitted:
+		return true
+	case DeviceScanResultDecisionExpired:
+		return true
+	case DeviceScanResultDecisionOutsideEntryWindow:
+		return true
+	case DeviceScanResultDecisionRefunded:
+		return true
+	case DeviceScanResultDecisionUnknownTicket:
+		return true
+	case DeviceScanResultDecisionVoid:
+		return true
+	case DeviceScanResultDecisionWrongSession:
 		return true
 	default:
 		return false
@@ -247,6 +400,36 @@ func (e PriceTierStatus) Valid() bool {
 	}
 }
 
+// Defines values for RefundStatus.
+const (
+	RefundStatusCancelled              RefundStatus = "cancelled"
+	RefundStatusFailed                 RefundStatus = "failed"
+	RefundStatusProcessing             RefundStatus = "processing"
+	RefundStatusReconciliationRequired RefundStatus = "reconciliation_required"
+	RefundStatusRequested              RefundStatus = "requested"
+	RefundStatusSucceeded              RefundStatus = "succeeded"
+)
+
+// Valid indicates whether the value is a known member of the RefundStatus enum.
+func (e RefundStatus) Valid() bool {
+	switch e {
+	case RefundStatusCancelled:
+		return true
+	case RefundStatusFailed:
+		return true
+	case RefundStatusProcessing:
+		return true
+	case RefundStatusReconciliationRequired:
+		return true
+	case RefundStatusRequested:
+		return true
+	case RefundStatusSucceeded:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SalesChannelStatus.
 const (
 	SalesChannelStatusActive   SalesChannelStatus = "active"
@@ -415,6 +598,27 @@ func (e VenueStatus) Valid() bool {
 	}
 }
 
+// Defines values for ListAuditEntriesParamsResult.
+const (
+	ListAuditEntriesParamsResultDenied  ListAuditEntriesParamsResult = "denied"
+	ListAuditEntriesParamsResultFailure ListAuditEntriesParamsResult = "failure"
+	ListAuditEntriesParamsResultSuccess ListAuditEntriesParamsResult = "success"
+)
+
+// Valid indicates whether the value is a known member of the ListAuditEntriesParamsResult enum.
+func (e ListAuditEntriesParamsResult) Valid() bool {
+	switch e {
+	case ListAuditEntriesParamsResultDenied:
+		return true
+	case ListAuditEntriesParamsResultFailure:
+		return true
+	case ListAuditEntriesParamsResultSuccess:
+		return true
+	default:
+		return false
+	}
+}
+
 // APIError defines model for APIError.
 type APIError struct {
 	Code      string            `json:"code"`
@@ -423,9 +627,61 @@ type APIError struct {
 	RequestId RequestIdentifier `json:"request_id"`
 }
 
+// APIKey defines model for APIKey.
+type APIKey struct {
+	CreatedAt      time.Time          `json:"created_at"`
+	ExpiresAt      *time.Time         `json:"expires_at,omitempty"`
+	Id             openapi_types.UUID `json:"id"`
+	LastUsedAt     *time.Time         `json:"last_used_at,omitempty"`
+	Name           string             `json:"name"`
+	OrganizationId openapi_types.UUID `json:"organization_id"`
+	Prefix         string             `json:"prefix"`
+	RevokedAt      *time.Time         `json:"revoked_at,omitempty"`
+	Scopes         []string           `json:"scopes"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	Version        int64              `json:"version"`
+}
+
+// APIKeyPage defines model for APIKeyPage.
+type APIKeyPage struct {
+	Items []APIKey   `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
 // AcceptInvitation defines model for AcceptInvitation.
 type AcceptInvitation struct {
 	Token string `json:"token"`
+}
+
+// AuditEntry defines model for AuditEntry.
+type AuditEntry struct {
+	Action             string                  `json:"action"`
+	ActorId            *string                 `json:"actor_id,omitempty"`
+	ActorType          string                  `json:"actor_type"`
+	AfterData          *map[string]interface{} `json:"after_data,omitempty"`
+	BeforeData         *map[string]interface{} `json:"before_data,omitempty"`
+	DeviceId           *openapi_types.UUID     `json:"device_id,omitempty"`
+	EffectiveActorId   *string                 `json:"effective_actor_id,omitempty"`
+	EffectiveActorType *string                 `json:"effective_actor_type,omitempty"`
+	Id                 openapi_types.UUID      `json:"id"`
+	OccurredAt         time.Time               `json:"occurred_at"`
+	OrganizationId     openapi_types.UUID      `json:"organization_id"`
+	Reason             *string                 `json:"reason,omitempty"`
+	RequestId          *string                 `json:"request_id,omitempty"`
+	Result             AuditEntryResult        `json:"result"`
+	SourceIp           *string                 `json:"source_ip,omitempty"`
+	SubjectId          string                  `json:"subject_id"`
+	SubjectType        string                  `json:"subject_type"`
+	TraceId            *string                 `json:"trace_id,omitempty"`
+}
+
+// AuditEntryResult defines model for AuditEntry.Result.
+type AuditEntryResult string
+
+// AuditEntryPage defines model for AuditEntryPage.
+type AuditEntryPage struct {
+	Items []AuditEntry `json:"items"`
+	Page  CursorPage   `json:"page"`
 }
 
 // AvailabilityEvent defines model for AvailabilityEvent.
@@ -486,10 +742,45 @@ type AvailabilitySnapshot struct {
 	SessionStatus  SessionStatus        `json:"session_status"`
 }
 
+// ChangeDeviceState defines model for ChangeDeviceState.
+type ChangeDeviceState struct {
+	State ChangeDeviceStateState `json:"state"`
+}
+
+// ChangeDeviceStateState defines model for ChangeDeviceState.State.
+type ChangeDeviceStateState string
+
 // ChangeMembershipRole defines model for ChangeMembershipRole.
 type ChangeMembershipRole struct {
 	Role MembershipRole `json:"role"`
 }
+
+// CreateAPIKey defines model for CreateAPIKey.
+type CreateAPIKey struct {
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Name      string     `json:"name"`
+	Scopes    []string   `json:"scopes"`
+}
+
+// CreateDevice defines model for CreateDevice.
+type CreateDevice struct {
+	AppVersion string             `json:"app_version"`
+	Name       string             `json:"name"`
+	Platform   string             `json:"platform"`
+	VenueId    openapi_types.UUID `json:"venue_id"`
+}
+
+// CreateDeviceAssignment defines model for CreateDeviceAssignment.
+type CreateDeviceAssignment struct {
+	Capability *CreateDeviceAssignmentCapability `json:"capability,omitempty"`
+	GateId     *openapi_types.UUID               `json:"gate_id,omitempty"`
+	SessionId  *openapi_types.UUID               `json:"session_id,omitempty"`
+	ValidFrom  *time.Time                        `json:"valid_from,omitempty"`
+	ValidUntil *time.Time                        `json:"valid_until,omitempty"`
+}
+
+// CreateDeviceAssignmentCapability defines model for CreateDeviceAssignment.Capability.
+type CreateDeviceAssignmentCapability string
 
 // CreateEvent defines model for CreateEvent.
 type CreateEvent struct {
@@ -542,6 +833,14 @@ type CreatePriceTier struct {
 	SalesEndAt      *time.Time `json:"sales_end_at,omitempty"`
 	SalesStartAt    *time.Time `json:"sales_start_at,omitempty"`
 	Slug            string     `json:"slug"`
+}
+
+// CreateRefund defines model for CreateRefund.
+type CreateRefund struct {
+	AmountMinor      int64              `json:"amount_minor"`
+	Currency         string             `json:"currency"`
+	PaymentAttemptId openapi_types.UUID `json:"payment_attempt_id"`
+	Reason           string             `json:"reason"`
 }
 
 // CreateSalesChannel defines model for CreateSalesChannel.
@@ -605,6 +904,109 @@ type CreateVenue struct {
 type CursorPage struct {
 	HasMore    bool    `json:"has_more"`
 	NextCursor *string `json:"next_cursor,omitempty"`
+}
+
+// Device defines model for Device.
+type Device struct {
+	AppVersion     string             `json:"app_version"`
+	CreatedAt      time.Time          `json:"created_at"`
+	Id             openapi_types.UUID `json:"id"`
+	LastSeenAt     *time.Time         `json:"last_seen_at"`
+	Name           string             `json:"name"`
+	OrganizationId openapi_types.UUID `json:"organization_id"`
+	Platform       string             `json:"platform"`
+	State          DeviceState        `json:"state"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	VenueId        openapi_types.UUID `json:"venue_id"`
+	Version        int64              `json:"version"`
+}
+
+// DeviceState defines model for Device.State.
+type DeviceState string
+
+// DeviceAssignment defines model for DeviceAssignment.
+type DeviceAssignment struct {
+	Capability     DeviceAssignmentCapability `json:"capability"`
+	CreatedAt      time.Time                  `json:"created_at"`
+	DeviceId       openapi_types.UUID         `json:"device_id"`
+	GateId         *openapi_types.UUID        `json:"gate_id"`
+	Id             openapi_types.UUID         `json:"id"`
+	OrganizationId openapi_types.UUID         `json:"organization_id"`
+	SessionId      *openapi_types.UUID        `json:"session_id"`
+	State          DeviceAssignmentState      `json:"state"`
+	UpdatedAt      time.Time                  `json:"updated_at"`
+	ValidFrom      time.Time                  `json:"valid_from"`
+	ValidUntil     *time.Time                 `json:"valid_until"`
+	Version        int64                      `json:"version"`
+}
+
+// DeviceAssignmentCapability defines model for DeviceAssignment.Capability.
+type DeviceAssignmentCapability string
+
+// DeviceAssignmentState defines model for DeviceAssignment.State.
+type DeviceAssignmentState string
+
+// DeviceAssignmentPage defines model for DeviceAssignmentPage.
+type DeviceAssignmentPage struct {
+	Items []DeviceAssignment `json:"items"`
+	Page  CursorPage         `json:"page"`
+}
+
+// DevicePage defines model for DevicePage.
+type DevicePage struct {
+	Items []Device   `json:"items"`
+	Page  CursorPage `json:"page"`
+}
+
+// DeviceScanResult defines model for DeviceScanResult.
+type DeviceScanResult struct {
+	AdmissionId   *openapi_types.UUID      `json:"admission_id"`
+	Admitted      bool                     `json:"admitted"`
+	Decision      DeviceScanResultDecision `json:"decision"`
+	Replay        bool                     `json:"replay"`
+	ScanAttemptId openapi_types.UUID       `json:"scan_attempt_id"`
+	TicketId      openapi_types.UUID       `json:"ticket_id"`
+}
+
+// DeviceScanResultDecision defines model for DeviceScanResult.Decision.
+type DeviceScanResultDecision string
+
+// EntryGateCount defines model for EntryGateCount.
+type EntryGateCount struct {
+	Count  int64               `json:"count"`
+	GateId *openapi_types.UUID `json:"gate_id"`
+}
+
+// EntryMinuteCount defines model for EntryMinuteCount.
+type EntryMinuteCount struct {
+	Count  int64     `json:"count"`
+	Minute time.Time `json:"minute"`
+}
+
+// EntryResultCount defines model for EntryResultCount.
+type EntryResultCount struct {
+	Count  int64  `json:"count"`
+	Result string `json:"result"`
+}
+
+// EntrySummary defines model for EntrySummary.
+type EntrySummary struct {
+	ByGate           []EntryGateCount       `json:"by_gate"`
+	ByMinute         []EntryMinuteCount     `json:"by_minute"`
+	ByResult         []EntryResultCount     `json:"by_result"`
+	ByTicketType     []EntryTicketTypeCount `json:"by_ticket_type"`
+	DataAsOf         *time.Time             `json:"data_as_of"`
+	DataDelaySeconds int64                  `json:"data_delay_seconds"`
+	GeneratedAt      time.Time              `json:"generated_at"`
+	OrganizationId   openapi_types.UUID     `json:"organization_id"`
+	SessionId        openapi_types.UUID     `json:"session_id"`
+	TotalScans       int64                  `json:"total_scans"`
+}
+
+// EntryTicketTypeCount defines model for EntryTicketTypeCount.
+type EntryTicketTypeCount struct {
+	Count       int64              `json:"count"`
+	PriceTierId openapi_types.UUID `json:"price_tier_id"`
 }
 
 // ErrorDetail defines model for ErrorDetail.
@@ -708,6 +1110,18 @@ type Invitation struct {
 
 // InvitationStatus defines model for Invitation.Status.
 type InvitationStatus string
+
+// IssuedAPIKey defines model for IssuedAPIKey.
+type IssuedAPIKey struct {
+	ApiKey APIKey  `json:"api_key"`
+	Token  *string `json:"token,omitempty"`
+}
+
+// IssuedDevice defines model for IssuedDevice.
+type IssuedDevice struct {
+	Device Device `json:"device"`
+	Token  string `json:"token"`
+}
 
 // IssuedInvitation defines model for IssuedInvitation.
 type IssuedInvitation struct {
@@ -819,8 +1233,42 @@ type PublicationValidationReport struct {
 	Warnings  []PublicationValidationIssue `json:"warnings"`
 }
 
+// RecordDeviceScan defines model for RecordDeviceScan.
+type RecordDeviceScan struct {
+	Credential   *string                 `json:"credential,omitempty"`
+	DeviceScanId string                  `json:"device_scan_id"`
+	GateId       *openapi_types.UUID     `json:"gate_id,omitempty"`
+	Metadata     *map[string]interface{} `json:"metadata,omitempty"`
+	ScannedAt    time.Time               `json:"scanned_at"`
+}
+
+// Refund defines model for Refund.
+type Refund struct {
+	AmountMinor      int64              `json:"amount_minor"`
+	CreatedAt        time.Time          `json:"created_at"`
+	Currency         string             `json:"currency"`
+	Id               openapi_types.UUID `json:"id"`
+	IdempotencyKey   string             `json:"idempotency_key"`
+	OrderId          openapi_types.UUID `json:"order_id"`
+	OrganizationId   openapi_types.UUID `json:"organization_id"`
+	PaymentAttemptId openapi_types.UUID `json:"payment_attempt_id"`
+	ProviderRefundId *string            `json:"provider_refund_id,omitempty"`
+	Reason           string             `json:"reason"`
+	Status           RefundStatus       `json:"status"`
+	UpdatedAt        time.Time          `json:"updated_at"`
+	Version          int64              `json:"version"`
+}
+
+// RefundStatus defines model for Refund.Status.
+type RefundStatus string
+
 // RequestIdentifier defines model for RequestIdentifier.
 type RequestIdentifier = string
+
+// RotateAPIKey defines model for RotateAPIKey.
+type RotateAPIKey struct {
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+}
 
 // SalesChannel defines model for SalesChannel.
 type SalesChannel struct {
@@ -1043,12 +1491,71 @@ type IdempotencyKey = string
 // IfMatch defines model for IfMatch.
 type IfMatch = string
 
+// IfNoneMatch defines model for IfNoneMatch.
+type IfNoneMatch = string
+
 // Problem Example: {"error":{"code":"validation_failed","details":[{"code":"invalid","field":"currency","message":"Use a supported currency."}],"message":"The request is invalid.","request_id":"req_01JEXAMPLE"}}
 type Problem = ErrorResponse
 
 // CreateOrganizationParams defines parameters for CreateOrganization.
 type CreateOrganizationParams struct {
 	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
+// ListAPIKeysParams defines parameters for ListAPIKeys.
+type ListAPIKeysParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// RevokeAPIKeyParams defines parameters for RevokeAPIKey.
+type RevokeAPIKeyParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// RotateAPIKeyParams defines parameters for RotateAPIKey.
+type RotateAPIKeyParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ListAuditEntriesParams defines parameters for ListAuditEntries.
+type ListAuditEntriesParams struct {
+	Limit         *int32                        `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor        *string                       `form:"cursor,omitempty" json:"cursor,omitempty"`
+	ActorType     *string                       `form:"actor_type,omitempty" json:"actor_type,omitempty"`
+	ActorId       *string                       `form:"actor_id,omitempty" json:"actor_id,omitempty"`
+	Action        *string                       `form:"action,omitempty" json:"action,omitempty"`
+	SubjectType   *string                       `form:"subject_type,omitempty" json:"subject_type,omitempty"`
+	SubjectId     *string                       `form:"subject_id,omitempty" json:"subject_id,omitempty"`
+	Result        *ListAuditEntriesParamsResult `form:"result,omitempty" json:"result,omitempty"`
+	RequestId     *string                       `form:"request_id,omitempty" json:"request_id,omitempty"`
+	OccurredFrom  *time.Time                    `form:"occurred_from,omitempty" json:"occurred_from,omitempty"`
+	OccurredUntil *time.Time                    `form:"occurred_until,omitempty" json:"occurred_until,omitempty"`
+}
+
+// ListAuditEntriesParamsResult defines parameters for ListAuditEntries.
+type ListAuditEntriesParamsResult string
+
+// ListDevicesParams defines parameters for ListDevices.
+type ListDevicesParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListDeviceAssignmentsParams defines parameters for ListDeviceAssignments.
+type ListDeviceAssignmentsParams struct {
+	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// RevokeDeviceAssignmentParams defines parameters for RevokeDeviceAssignment.
+type RevokeDeviceAssignmentParams struct {
+	IfMatch IfMatch `json:"If-Match"`
+}
+
+// ChangeDeviceStateParams defines parameters for ChangeDeviceState.
+type ChangeDeviceStateParams struct {
+	IfMatch IfMatch `json:"If-Match"`
 }
 
 // ListEventsParams defines parameters for ListEvents.
@@ -1106,16 +1613,32 @@ type ChangeMembershipRoleParams struct {
 	IfMatch IfMatch `json:"If-Match"`
 }
 
+// CreateRefundParams defines parameters for CreateRefund.
+type CreateRefundParams struct {
+	IdempotencyKey IdempotencyKey `json:"Idempotency-Key"`
+}
+
 // ListSalesChannelsParams defines parameters for ListSalesChannels.
 type ListSalesChannelsParams struct {
 	Limit  *int32  `form:"limit,omitempty" json:"limit,omitempty"`
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// GetSessionAvailabilityParams defines parameters for GetSessionAvailability.
+type GetSessionAvailabilityParams struct {
+	IfNoneMatch *IfNoneMatch `json:"If-None-Match,omitempty"`
+}
+
 // ListSessionAvailabilityChangesParams defines parameters for ListSessionAvailabilityChanges.
 type ListSessionAvailabilityChangesParams struct {
 	After *int64 `form:"after,omitempty" json:"after,omitempty"`
 	Limit *int32 `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetEntrySummaryParams defines parameters for GetEntrySummary.
+type GetEntrySummaryParams struct {
+	From  time.Time `form:"from" json:"from"`
+	Until time.Time `form:"until" json:"until"`
 }
 
 // ListVenuesParams defines parameters for ListVenues.
@@ -1179,11 +1702,29 @@ type ListUsersParams struct {
 	Offset *int32 `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
+// RecordDeviceScanJSONRequestBody defines body for RecordDeviceScan for application/json ContentType.
+type RecordDeviceScanJSONRequestBody = RecordDeviceScan
+
 // AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
 type AcceptInvitationJSONRequestBody = AcceptInvitation
 
 // CreateOrganizationJSONRequestBody defines body for CreateOrganization for application/json ContentType.
 type CreateOrganizationJSONRequestBody = CreateOrganization
+
+// CreateAPIKeyJSONRequestBody defines body for CreateAPIKey for application/json ContentType.
+type CreateAPIKeyJSONRequestBody = CreateAPIKey
+
+// RotateAPIKeyJSONRequestBody defines body for RotateAPIKey for application/json ContentType.
+type RotateAPIKeyJSONRequestBody = RotateAPIKey
+
+// CreateDeviceJSONRequestBody defines body for CreateDevice for application/json ContentType.
+type CreateDeviceJSONRequestBody = CreateDevice
+
+// CreateDeviceAssignmentJSONRequestBody defines body for CreateDeviceAssignment for application/json ContentType.
+type CreateDeviceAssignmentJSONRequestBody = CreateDeviceAssignment
+
+// ChangeDeviceStateJSONRequestBody defines body for ChangeDeviceState for application/json ContentType.
+type ChangeDeviceStateJSONRequestBody = ChangeDeviceState
 
 // CreateEventJSONRequestBody defines body for CreateEvent for application/json ContentType.
 type CreateEventJSONRequestBody = CreateEvent
@@ -1205,6 +1746,9 @@ type CreateInvitationJSONRequestBody = CreateInvitation
 
 // ChangeMembershipRoleJSONRequestBody defines body for ChangeMembershipRole for application/json ContentType.
 type ChangeMembershipRoleJSONRequestBody = ChangeMembershipRole
+
+// CreateRefundJSONRequestBody defines body for CreateRefund for application/json ContentType.
+type CreateRefundJSONRequestBody = CreateRefund
 
 // CreateSalesChannelJSONRequestBody defines body for CreateSalesChannel for application/json ContentType.
 type CreateSalesChannelJSONRequestBody = CreateSalesChannel
@@ -1241,6 +1785,9 @@ type ServerInterface interface {
 	// Readyz Check dependency readiness
 	// (GET /readyz)
 	Readyz(w http.ResponseWriter, r *http.Request)
+	// RecordDeviceScan Record an authenticated online ticket scan
+	// (POST /v1/device/scans)
+	RecordDeviceScan(w http.ResponseWriter, r *http.Request)
 	// AcceptInvitation Accept a one-time invitation for the authenticated user
 	// (POST /v1/invitations/accept)
 	AcceptInvitation(w http.ResponseWriter, r *http.Request)
@@ -1250,6 +1797,42 @@ type ServerInterface interface {
 	// GetOrganization Fetch an organization in the caller's verified tenant scope
 	// (GET /v1/organizations/{organization_id})
 	GetOrganization(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// ListAPIKeys List organization API keys without secret material
+	// (GET /v1/organizations/{organization_id}/api-keys)
+	ListAPIKeys(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListAPIKeysParams)
+	// CreateAPIKey Create a scoped organization API key
+	// (POST /v1/organizations/{organization_id}/api-keys)
+	CreateAPIKey(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// RevokeAPIKey Revoke an organization API key
+	// (DELETE /v1/organizations/{organization_id}/api-keys/{key_id})
+	RevokeAPIKey(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, keyId openapi_types.UUID, params RevokeAPIKeyParams)
+	// RotateAPIKey Rotate an organization API key
+	// (POST /v1/organizations/{organization_id}/api-keys/{key_id}/rotate)
+	RotateAPIKey(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, keyId openapi_types.UUID, params RotateAPIKeyParams)
+	// ListAuditEntries Explore tenant audit entries
+	// (GET /v1/organizations/{organization_id}/audit-entries)
+	ListAuditEntries(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListAuditEntriesParams)
+	// ListDevices List enrolled scanner devices
+	// (GET /v1/organizations/{organization_id}/devices)
+	ListDevices(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListDevicesParams)
+	// CreateDevice Enroll a scanner device
+	// (POST /v1/organizations/{organization_id}/devices)
+	CreateDevice(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
+	// GetDevice Get enrolled scanner device metadata
+	// (GET /v1/organizations/{organization_id}/devices/{device_id})
+	GetDevice(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, deviceId openapi_types.UUID)
+	// ListDeviceAssignments List scoped device assignments
+	// (GET /v1/organizations/{organization_id}/devices/{device_id}/assignments)
+	ListDeviceAssignments(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, deviceId openapi_types.UUID, params ListDeviceAssignmentsParams)
+	// CreateDeviceAssignment Assign a device to an entry session or gate
+	// (POST /v1/organizations/{organization_id}/devices/{device_id}/assignments)
+	CreateDeviceAssignment(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, deviceId openapi_types.UUID)
+	// RevokeDeviceAssignment Revoke a device assignment
+	// (DELETE /v1/organizations/{organization_id}/devices/{device_id}/assignments/{assignment_id})
+	RevokeDeviceAssignment(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, deviceId openapi_types.UUID, assignmentId openapi_types.UUID, params RevokeDeviceAssignmentParams)
+	// ChangeDeviceState Suspend, reactivate, or revoke a scanner device
+	// (PATCH /v1/organizations/{organization_id}/devices/{device_id}/state)
+	ChangeDeviceState(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, deviceId openapi_types.UUID, params ChangeDeviceStateParams)
 	// ListEvents List tenant events
 	// (GET /v1/organizations/{organization_id}/events)
 	ListEvents(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListEventsParams)
@@ -1307,6 +1890,12 @@ type ServerInterface interface {
 	// ChangeMembershipRole Change a membership role with an optimistic version precondition
 	// (PATCH /v1/organizations/{organization_id}/memberships/{membership_id})
 	ChangeMembershipRole(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, membershipId openapi_types.UUID, params ChangeMembershipRoleParams)
+	// CreateRefund Request a refund for a confirmed order
+	// (POST /v1/organizations/{organization_id}/orders/{order_id}/refunds)
+	CreateRefund(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, orderId openapi_types.UUID, params CreateRefundParams)
+	// GetRefund Get a refund request
+	// (GET /v1/organizations/{organization_id}/orders/{order_id}/refunds/{refund_id})
+	GetRefund(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, orderId openapi_types.UUID, refundId openapi_types.UUID)
 	// ListSalesChannels List tenant sales channels
 	// (GET /v1/organizations/{organization_id}/sales-channels)
 	ListSalesChannels(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListSalesChannelsParams)
@@ -1315,10 +1904,13 @@ type ServerInterface interface {
 	CreateSalesChannel(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID)
 	// GetSessionAvailability Get the authoritative session inventory snapshot
 	// (GET /v1/organizations/{organization_id}/sessions/{session_id}/availability)
-	GetSessionAvailability(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, sessionId openapi_types.UUID)
+	GetSessionAvailability(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, sessionId openapi_types.UUID, params GetSessionAvailabilityParams)
 	// ListSessionAvailabilityChanges Replay committed session availability changes
 	// (GET /v1/organizations/{organization_id}/sessions/{session_id}/availability/changes)
 	ListSessionAvailabilityChanges(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, sessionId openapi_types.UUID, params ListSessionAvailabilityChangesParams)
+	// GetEntrySummary Get a bounded entry operations summary
+	// (GET /v1/organizations/{organization_id}/sessions/{session_id}/entry-summary)
+	GetEntrySummary(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, sessionId openapi_types.UUID, params GetEntrySummaryParams)
 	// ListVenues List tenant venues
 	// (GET /v1/organizations/{organization_id}/venues)
 	ListVenues(w http.ResponseWriter, r *http.Request, organizationId openapi_types.UUID, params ListVenuesParams)
@@ -1430,6 +2022,20 @@ func (siw *ServerInterfaceWrapper) Readyz(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
+// RecordDeviceScan operation middleware
+func (siw *ServerInterfaceWrapper) RecordDeviceScan(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RecordDeviceScan(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // AcceptInvitation operation middleware
 func (siw *ServerInterfaceWrapper) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
 
@@ -1506,6 +2112,735 @@ func (siw *ServerInterfaceWrapper) GetOrganization(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetOrganization(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAPIKeys operation middleware
+func (siw *ServerInterfaceWrapper) ListAPIKeys(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAPIKeysParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAPIKeys(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateAPIKey operation middleware
+func (siw *ServerInterfaceWrapper) CreateAPIKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateAPIKey(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeAPIKey operation middleware
+func (siw *ServerInterfaceWrapper) RevokeAPIKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "key_id" -------------
+	var keyId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "key_id", r.PathValue("key_id"), &keyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "key_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeAPIKeyParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeAPIKey(w, r, organizationId, keyId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RotateAPIKey operation middleware
+func (siw *ServerInterfaceWrapper) RotateAPIKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "key_id" -------------
+	var keyId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "key_id", r.PathValue("key_id"), &keyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "key_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RotateAPIKeyParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RotateAPIKey(w, r, organizationId, keyId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListAuditEntries operation middleware
+func (siw *ServerInterfaceWrapper) ListAuditEntries(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListAuditEntriesParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "actor_type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "actor_type", r.URL.Query(), &params.ActorType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "actor_type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "actor_type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "actor_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "actor_id", r.URL.Query(), &params.ActorId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "actor_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "actor_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "action" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "action", r.URL.Query(), &params.Action, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "action"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "subject_type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "subject_type", r.URL.Query(), &params.SubjectType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "subject_type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subject_type", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "subject_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "subject_id", r.URL.Query(), &params.SubjectId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "subject_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subject_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "result" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "result", r.URL.Query(), &params.Result, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "result"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "result", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "request_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "request_id", r.URL.Query(), &params.RequestId, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "request_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "request_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "occurred_from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "occurred_from", r.URL.Query(), &params.OccurredFrom, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "occurred_from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "occurred_from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "occurred_until" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "occurred_until", r.URL.Query(), &params.OccurredUntil, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "occurred_until"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "occurred_until", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListAuditEntries(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListDevices operation middleware
+func (siw *ServerInterfaceWrapper) ListDevices(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListDevicesParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDevices(w, r, organizationId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDevice operation middleware
+func (siw *ServerInterfaceWrapper) CreateDevice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDevice(w, r, organizationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetDevice operation middleware
+func (siw *ServerInterfaceWrapper) GetDevice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "device_id" -------------
+	var deviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "device_id", r.PathValue("device_id"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "device_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetDevice(w, r, organizationId, deviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListDeviceAssignments operation middleware
+func (siw *ServerInterfaceWrapper) ListDeviceAssignments(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "device_id" -------------
+	var deviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "device_id", r.PathValue("device_id"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "device_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListDeviceAssignmentsParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: "int32"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", r.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "cursor"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cursor", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListDeviceAssignments(w, r, organizationId, deviceId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDeviceAssignment operation middleware
+func (siw *ServerInterfaceWrapper) CreateDeviceAssignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "device_id" -------------
+	var deviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "device_id", r.PathValue("device_id"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "device_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDeviceAssignment(w, r, organizationId, deviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeDeviceAssignment operation middleware
+func (siw *ServerInterfaceWrapper) RevokeDeviceAssignment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "device_id" -------------
+	var deviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "device_id", r.PathValue("device_id"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "device_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "assignment_id" -------------
+	var assignmentId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "assignment_id", r.PathValue("assignment_id"), &assignmentId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "assignment_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeDeviceAssignmentParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeDeviceAssignment(w, r, organizationId, deviceId, assignmentId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ChangeDeviceState operation middleware
+func (siw *ServerInterfaceWrapper) ChangeDeviceState(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "device_id" -------------
+	var deviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "device_id", r.PathValue("device_id"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "device_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ChangeDeviceStateParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "If-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-Match")]; found {
+		var IfMatch IfMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-Match", valueList[0], &IfMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-Match", Err: err})
+			return
+		}
+
+		params.IfMatch = IfMatch
+
+	} else {
+		err := fmt.Errorf("Header parameter If-Match is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "If-Match", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ChangeDeviceState(w, r, organizationId, deviceId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2474,6 +3809,113 @@ func (siw *ServerInterfaceWrapper) ChangeMembershipRole(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
+// CreateRefund operation middleware
+func (siw *ServerInterfaceWrapper) CreateRefund(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "order_id" -------------
+	var orderId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "order_id", r.PathValue("order_id"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "order_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateRefundParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "Idempotency-Key" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("Idempotency-Key")]; found {
+		var IdempotencyKey IdempotencyKey
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "Idempotency-Key", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "Idempotency-Key", valueList[0], &IdempotencyKey, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Idempotency-Key", Err: err})
+			return
+		}
+
+		params.IdempotencyKey = IdempotencyKey
+
+	} else {
+		err := fmt.Errorf("Header parameter Idempotency-Key is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "Idempotency-Key", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateRefund(w, r, organizationId, orderId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetRefund operation middleware
+func (siw *ServerInterfaceWrapper) GetRefund(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "order_id" -------------
+	var orderId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "order_id", r.PathValue("order_id"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "order_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "refund_id" -------------
+	var refundId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "refund_id", r.PathValue("refund_id"), &refundId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "refund_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetRefund(w, r, organizationId, orderId, refundId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListSalesChannels operation middleware
 func (siw *ServerInterfaceWrapper) ListSalesChannels(w http.ResponseWriter, r *http.Request) {
 
@@ -2579,8 +4021,32 @@ func (siw *ServerInterfaceWrapper) GetSessionAvailability(w http.ResponseWriter,
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetSessionAvailabilityParams
+
+	headers := r.Header
+
+	// ------------- Optional header parameter "If-None-Match" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("If-None-Match")]; found {
+		var IfNoneMatch IfNoneMatch
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "If-None-Match", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "If-None-Match", valueList[0], &IfNoneMatch, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "If-None-Match", Err: err})
+			return
+		}
+
+		params.IfNoneMatch = &IfNoneMatch
+
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSessionAvailability(w, r, organizationId, sessionId)
+		siw.Handler.GetSessionAvailability(w, r, organizationId, sessionId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2645,6 +4111,70 @@ func (siw *ServerInterfaceWrapper) ListSessionAvailabilityChanges(w http.Respons
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListSessionAvailabilityChanges(w, r, organizationId, sessionId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetEntrySummary operation middleware
+func (siw *ServerInterfaceWrapper) GetEntrySummary(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "organization_id" -------------
+	var organizationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "organization_id", r.PathValue("organization_id"), &organizationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "session_id" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "session_id", r.PathValue("session_id"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "session_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetEntrySummaryParams
+
+	// ------------- Required query parameter "from" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "from", r.URL.Query(), &params.From, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "from"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "from", Err: err})
+		}
+		return
+	}
+
+	// ------------- Required query parameter "until" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "until", r.URL.Query(), &params.Until, runtime.BindQueryParameterOptions{Type: "string", Format: "date-time"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "until"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "until", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetEntrySummary(w, r, organizationId, sessionId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -4013,6 +5543,20 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/users/{id}", wrapper.GetUser)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations", wrapper.CreateOrganization)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}", wrapper.GetOrganization)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/api-keys", wrapper.ListAPIKeys)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/api-keys", wrapper.CreateAPIKey)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/v1/organizations/{organization_id}/api-keys/{key_id}", wrapper.RevokeAPIKey)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/api-keys/{key_id}/rotate", wrapper.RotateAPIKey)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/audit-entries", wrapper.ListAuditEntries)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/orders/{order_id}/refunds", wrapper.CreateRefund)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/orders/{order_id}/refunds/{refund_id}", wrapper.GetRefund)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices", wrapper.ListDevices)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices", wrapper.CreateDevice)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices/{device_id}", wrapper.GetDevice)
+	m.HandleFunc(http.MethodPatch+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices/{device_id}/state", wrapper.ChangeDeviceState)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices/{device_id}/assignments", wrapper.ListDeviceAssignments)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices/{device_id}/assignments", wrapper.CreateDeviceAssignment)
+	m.HandleFunc(http.MethodDelete+" "+options.BaseURL+"/v1/organizations/{organization_id}/devices/{device_id}/assignments/{assignment_id}", wrapper.RevokeDeviceAssignment)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/memberships", wrapper.ListMemberships)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/invitations", wrapper.CreateInvitation)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events", wrapper.ListEvents)
@@ -4027,6 +5571,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}", wrapper.GetSession)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/sessions/{session_id}/availability", wrapper.GetSessionAvailability)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/sessions/{session_id}/availability/changes", wrapper.ListSessionAvailabilityChanges)
+	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/sessions/{session_id}/entry-summary", wrapper.GetEntrySummary)
+	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/device/scans", wrapper.RecordDeviceScan)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/price-tiers", wrapper.ListPriceTiers)
 	m.HandleFunc(http.MethodPost+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/price-tiers", wrapper.CreatePriceTier)
 	m.HandleFunc(http.MethodGet+" "+options.BaseURL+"/v1/organizations/{organization_id}/events/{event_id}/sessions/{session_id}/channel-allocations", wrapper.ListSessionChannelAllocations)
@@ -4067,111 +5613,157 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"iL8BvU9Qu6KBe+FO3Mfbx/8fAA==",
+	"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",
+	"JizyL/2Z/3z3/P8HAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

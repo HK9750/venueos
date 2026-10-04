@@ -11,7 +11,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-func NewHandler(server *Server, cfg config.Telemetry, logger *slog.Logger, metrics *observability.Metrics) http.Handler {
+func NewHandler(server *Server, cfg config.Telemetry, logger *slog.Logger, metrics *observability.Metrics, authenticators ...BearerAuthenticator) http.Handler {
 	mux := http.NewServeMux()
 	generated := HandlerWithOptions(server, StdHTTPServerOptions{
 		BaseRouter: mux,
@@ -20,7 +20,11 @@ func NewHandler(server *Server, cfg config.Telemetry, logger *slog.Logger, metri
 		},
 	})
 
-	handler := Recover(logger)(generated)
+	handler := generated
+	if len(authenticators) > 0 && authenticators[0] != nil {
+		handler = Authenticate(authenticators[0])(handler)
+	}
+	handler = Recover(logger)(handler)
 	if cfg.MetricsEnabled {
 		handler = metrics.Middleware(handler)
 	}

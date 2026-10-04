@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -44,6 +45,22 @@ type APIKey struct {
 	Version        int64
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+const (
+	DefaultAPIKeyLimit = int32(50)
+	MaxAPIKeyLimit     = int32(100)
+)
+
+type APIKeyCursor struct {
+	OrganizationID identifier.ID
+	CreatedAt      time.Time
+	ID             identifier.ID
+}
+
+type APIKeyPage struct {
+	Items      []APIKey
+	NextCursor *APIKeyCursor
 }
 
 type StoredAPIKey struct {
@@ -110,6 +127,7 @@ type RotateAPIKeyRecord struct {
 }
 
 type APIKeyRepository interface {
+	ListAPIKeys(context.Context, identifier.ID, int32, *APIKeyCursor) (APIKeyPage, error)
 	CreateAPIKey(context.Context, CreateAPIKeyRecord) (APIKey, error)
 	RevokeAPIKey(context.Context, RevokeAPIKeyRecord) (APIKey, error)
 	GetAPIKey(context.Context, identifier.ID, identifier.ID) (APIKey, error)
@@ -125,6 +143,29 @@ type APIKeyService struct {
 
 func NewAPIKeyService(repository APIKeyRepository, timeSource clock.Clock) *APIKeyService {
 	return &APIKeyService{repository: repository, clock: timeSource}
+}
+
+func (service *APIKeyService) List(ctx context.Context, organizationID identifier.ID, limit int32, after *APIKeyCursor) (APIKeyPage, error) {
+	authorization, err := Require(ctx, PermissionIntegrationManage)
+	if err != nil {
+		if errors.Is(err, ErrUnauthenticated) {
+			return APIKeyPage{}, apperror.Wrap(err, apperror.CodeUnauthenticated, "Authentication is required.")
+		}
+		return APIKeyPage{}, apperror.Wrap(err, apperror.CodePermissionDenied, "API key management is not permitted.")
+	}
+	if organizationID.IsZero() || authorization.OrganizationID() != organizationID {
+		return APIKeyPage{}, apperror.Wrap(ErrAPIKeyNotFound, apperror.CodeNotFound, "The requested API key does not exist.")
+	}
+	if limit == 0 {
+		limit = DefaultAPIKeyLimit
+	}
+	if limit < 1 || limit > MaxAPIKeyLimit {
+		return APIKeyPage{}, apperror.New(apperror.CodeValidationFailed, "The API key list request is invalid.", apperror.Detail{Field: "limit", Code: "out_of_range", Message: fmt.Sprintf("Use a limit between 1 and %d.", MaxAPIKeyLimit)})
+	}
+	if after != nil && (after.OrganizationID != authorization.OrganizationID() || after.ID.IsZero() || after.CreatedAt.IsZero()) {
+		return APIKeyPage{}, apperror.New(apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	return service.repository.ListAPIKeys(ctx, authorization.OrganizationID(), limit, after)
 }
 
 func (service *APIKeyService) Create(ctx context.Context, input CreateAPIKeyInput) (IssuedAPIKey, error) {
@@ -309,6 +350,54 @@ func (service *APIKeyService) Authenticate(ctx context.Context, token string) (A
 		return Authorization{}, APIKey{}, fmt.Errorf("record API key use: %w", err)
 	}
 	return authorization, stored.APIKey, nil
+}
+
+type apiKeyCursorPayload struct {
+	Version        int    `json:"v"`
+	OrganizationID string `json:"organization_id"`
+	CreatedAt      string `json:"created_at"`
+	ID             string `json:"id"`
+}
+
+// EncodeAPIKeyCursor binds the opaque cursor to one organization. A keyed
+// signer can be added at the transport configuration boundary without changing
+// repository ordering or tenant predicates.
+func EncodeAPIKeyCursor(cursor APIKeyCursor) (string, error) {
+	if cursor.OrganizationID.IsZero() || cursor.ID.IsZero() || cursor.CreatedAt.IsZero() {
+		return "", errors.New("API key cursor fields are required")
+	}
+	body, err := json.Marshal(apiKeyCursorPayload{Version: 1, OrganizationID: cursor.OrganizationID.String(), CreatedAt: cursor.CreatedAt.UTC().Format(time.RFC3339Nano), ID: cursor.ID.String()})
+	if err != nil {
+		return "", fmt.Errorf("encode API key cursor: %w", err)
+	}
+	return base64.RawURLEncoding.EncodeToString(body), nil
+}
+
+func DecodeAPIKeyCursor(value string) (APIKeyCursor, error) {
+	if len(value) == 0 || len(value) > 512 {
+		return APIKeyCursor{}, apperror.New(apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	body, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return APIKeyCursor{}, apperror.Wrap(err, apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	var payload apiKeyCursorPayload
+	if err := json.Unmarshal(body, &payload); err != nil || payload.Version != 1 {
+		return APIKeyCursor{}, apperror.New(apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	organizationID, err := identifier.Parse(payload.OrganizationID)
+	if err != nil {
+		return APIKeyCursor{}, apperror.New(apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	id, err := identifier.Parse(payload.ID)
+	if err != nil {
+		return APIKeyCursor{}, apperror.New(apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	createdAt, err := time.Parse(time.RFC3339Nano, payload.CreatedAt)
+	if err != nil {
+		return APIKeyCursor{}, apperror.New(apperror.CodeInvalidCursor, "The API key cursor is invalid.")
+	}
+	return APIKeyCursor{OrganizationID: organizationID, CreatedAt: createdAt.UTC(), ID: id}, nil
 }
 
 func generateAPIKeyMaterial() (string, string, [32]byte, error) {

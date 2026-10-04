@@ -122,8 +122,16 @@ overlap window. It records safe audit/outbox metadata without the secret.
 Prefix-based authentication reconstructs an API-key
 principal and organization authorization after constant-time verifier comparison;
 the provider-neutral OIDC verifier port and deterministic development/test fake are
-available, while production token verification and HTTP credential middleware
-remain provider-dependent.
+available. The API router now applies provider-neutral bearer middleware to the
+organization and invitation surfaces; the production API process wires the
+existing API-key verifier into that boundary. OIDC bearer verification and
+membership-backed user sessions remain provider-dependent. The organization API
+also exposes a bounded cursor-paginated API-key metadata list that never selects
+or returns secret hashes. Revocation is exposed as a tenant-scoped `DELETE`
+command with a required `If-Match` version; retries of the same terminal command
+return current metadata without duplicating audit/outbox records. Create and
+rotate are exposed as one-time-secret commands; PostgreSQL stores only verifiers,
+so the issuing response must be retained when a caller needs the secret again.
 
 PostgreSQL row-level security is recommended as defense in depth:
 
@@ -149,11 +157,20 @@ timestamps, creator, and last-used metadata. Plaintext appears exactly once.
 
 Enrollment is initiated by a door manager using a one-time code or QR with a short
 expiry. The device generates or receives a secret, which is stored using platform
-secure storage on the device and a verifier server-side. Record device name,
-platform, app version, assigned venue/session/gates, status, last seen, credential
-version, and clock skew estimate.
+secure storage on the device and a verifier server-side. The current tenant API
+implements provider-neutral enrollment: it validates venue scope, returns a
+high-entropy `vdev_...` credential exactly once, stores only its SHA-256 verifier,
+and records an atomic audit/outbox event. Metadata reads never return the
+credential. Device assignment commands now scope a device to a tenant session or
+gate and capability with validity bounds, version checks, and audit/outbox records.
+Record device name, platform, app version, assigned venue/session/gates, status, last
+seen, credential version, and clock skew estimate. The scan application service and
+`POST /v1/device/scans` now require the authenticated device principal and active
+`entry.scan` grant; raw ticket credentials are verified and hashed before the
+transaction boundary.
 
-States: `pending`, `active`, `revoked`, `retired`. Revocation blocks sync and online
+The current persisted lifecycle states are `active`, `suspended`, and `revoked`;
+revocation blocks sync and online
 scans immediately. Offline manifests include their own expiry and revocation epoch
 so long-offline devices cannot operate indefinitely.
 
@@ -186,6 +203,10 @@ ownership unless a narrower emergency procedure explicitly permits it.
 - API key show-once, hash verification, expiry, versioned revocation, and
   immediate rotation are implemented; overlap windows remain an explicit policy
   option rather than an implicit default.
+- The tenant audit explorer is permission-gated by `audit.read`, uses a bounded
+  filter-bound cursor ordered by `(occurred_at, id)`, and redacts credential-like
+  fields again at the response boundary. Audit queries always derive organization
+  scope from verified authorization.
 - OIDC wrong issuer/audience/algorithm/key, expiry, and JWKS rotation.
 - Device revoked/offline-expired behavior.
 - RLS pooled-connection leakage test when RLS is enabled.

@@ -79,3 +79,19 @@ func (money Money) Subtract(other Money) (Money, error) {
 	}
 	return New(money.minorUnits-other.minorUnits, money.currency)
 }
+
+// Multiply returns money multiplied by a non-negative quantity with checked
+// integer arithmetic. It is used for ticket/cart line extensions; fractional
+// currency and floating-point rounding never enter the calculation.
+func (money Money) Multiply(quantity int64) (Money, error) {
+	if !money.currency.valid() {
+		return Money{}, ErrCurrencyMismatch
+	}
+	if quantity < 0 {
+		return Money{}, ErrNegativeAmount
+	}
+	if quantity != 0 && money.minorUnits > math.MaxInt64/quantity {
+		return Money{}, ErrOverflow
+	}
+	return New(money.minorUnits*quantity, money.currency)
+}

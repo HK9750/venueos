@@ -366,6 +366,63 @@ func TestPlatformTenancyMigration(t *testing.T) {
 		) VALUES ($1, $2, $3, $4, $5, 2)
 	`, uuid.New(), organizationID, holdID, sessionID, sessionPoolID)
 	require.NoError(t, err)
+	cartID := uuid.New()
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO carts (
+			id, organization_id, session_id, hold_id, owner_token_hash, owner_user_id,
+			currency, quote_snapshot, quote_sha256
+		) VALUES ($1, $2, $3, $4, decode(repeat('aa', 32), 'hex'), $5,
+			'USD', '{"version":1,"currency":"USD"}', decode(repeat('bb', 32), 'hex'))
+	`, cartID, organizationID, sessionID, holdID, userID)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `UPDATE carts SET quote_snapshot = '[]' WHERE id = $1`, cartID)
+	assertNamedConstraintViolation(t, err, "ck_carts_quote_snapshot")
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO carts (
+			id, organization_id, session_id, hold_id, owner_token_hash, currency,
+			quote_snapshot, quote_sha256
+		) VALUES ($1, $2, $3, $4, decode(repeat('cc', 32), 'hex'), 'USD',
+			'{"version":1}', decode(repeat('dd', 32), 'hex'))
+	`, uuid.New(), organizationID, sessionID, holdID)
+	assertNamedUniqueViolation(t, err, "uq_carts_active_hold")
+	orderID := uuid.New()
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO orders (
+			id, organization_id, cart_id, session_id, hold_id, order_number,
+			owner_token_hash, owner_user_id, currency, state, subtotal_minor,
+			discount_minor, fees_minor, taxes_minor, total_minor, quote_snapshot,
+			quote_sha256
+		) VALUES ($1, $2, $3, $4, $5, 'VO-ORDER0001', decode(repeat('aa', 32), 'hex'), $6,
+			'USD', 'payment_pending', 2500, 0, 0, 0, 2500,
+			'{"version":1,"currency":"USD"}', decode(repeat('bb', 32), 'hex'))
+	`, orderID, organizationID, cartID, sessionID, holdID, userID)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO order_lines (
+			id, organization_id, order_id, line_number, price_tier_id, quantity,
+			unit_minor, subtotal_minor, snapshot
+		) VALUES ($1, $2, $3, 1, $4, 1, 2500, 2500,
+			'{"version":1,"price_tier_id":"' || $4::text || '"}')
+	`, uuid.New(), organizationID, orderID, priceTierID)
+	require.NoError(t, err)
+	paymentAttemptID := uuid.New()
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO payment_attempts (
+			id, organization_id, order_id, provider, amount_minor, currency,
+			idempotency_key, metadata
+		) VALUES ($1, $2, $3, 'stripe', 2500, 'USD', 'order-payment-0001', '{}')
+	`, paymentAttemptID, organizationID, orderID)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO refunds (
+			id, organization_id, order_id, payment_attempt_id, amount_minor,
+			currency, idempotency_key, reason, actor_type, actor_id
+		) VALUES ($1, $2, $3, $4, 500, 'USD', 'refund-request-0001',
+			'customer request', 'user', 'owner-1')
+	`, uuid.New(), organizationID, orderID, paymentAttemptID)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `UPDATE orders SET quote_snapshot = '[]' WHERE id = $1`, orderID)
+	assertNamedConstraintViolation(t, err, "ck_orders_quote_snapshot")
 
 	_, err = db.ExecContext(ctx, `UPDATE audit_entries SET reason = 'changed' WHERE id = $1`, auditID)
 	var postgresError *pgconn.PgError
@@ -380,6 +437,26 @@ func TestPlatformTenancyMigration(t *testing.T) {
 		INSERT INTO inbox_messages (id, organization_id, source, message_id, payload_sha256)
 		VALUES ($1, $2, 'stripe', 'event-1', decode(repeat('01', 32), 'hex'))
 	`, uuid.New(), organizationID)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		UPDATE inbox_messages
+		SET state = 'processing'
+		WHERE source = 'stripe' AND message_id = 'event-1'
+	`)
+	assertNamedConstraintViolation(t, err, "ck_inbox_messages_lease")
+	_, err = db.ExecContext(ctx, `
+		UPDATE inbox_messages
+		SET state = 'processing', lease_owner = 'migration-test', lease_expires_at = now() + interval '1 minute'
+		WHERE source = 'stripe' AND message_id = 'event-1'
+	`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		UPDATE inbox_messages
+		SET state = 'failed', lease_owner = NULL, lease_expires_at = NULL,
+			available_at = now() + interval '1 minute', last_error_code = 'transient',
+			last_error_message = 'temporary'
+		WHERE source = 'stripe' AND message_id = 'event-1'
+	`)
 	require.NoError(t, err)
 	_, err = db.ExecContext(ctx, `
 		INSERT INTO inbox_messages (id, organization_id, source, message_id, payload_sha256)
@@ -410,6 +487,26 @@ func TestPlatformTenancyMigration(t *testing.T) {
 		"ix_outbox_events_claim",
 		"ix_audit_entries_organization_occurred_id",
 		"ix_inbox_messages_unprocessed",
+		"ix_inbox_messages_claim",
+		"ix_inbox_messages_expired_lease",
+		"uq_carts_active_hold",
+		"ix_carts_owner",
+		"ix_carts_session_state_updated",
+		"ix_orders_owner",
+		"ix_orders_session_state_created",
+		"ix_order_lines_order",
+		"uq_payment_attempts_provider_object",
+		"ix_payment_attempts_order_state",
+		"uq_refunds_provider_ref",
+		"ix_refunds_order_state",
+		"ix_entitlements_session_state",
+		"ix_tickets_session_state",
+		"ix_ticket_signing_keys_state",
+		"ix_devices_venue_state",
+		"uq_device_assignments_scope",
+		"ix_device_assignments_active_scope",
+		"ix_scan_attempts_ticket_received",
+		"ix_admissions_session_time",
 		"ix_jobs_claim",
 		"ix_jobs_expired_lease",
 	} {
@@ -419,7 +516,7 @@ func TestPlatformTenancyMigration(t *testing.T) {
 	}
 
 	require.NoError(t, goose.DownToContext(ctx, db, ".", 1))
-	var usersExist, organizationsExist, jobsExist, inboxExists, membershipsExist, identityLinksExist, invitationsExist, apiKeysExist, venuesExist, spacesExist, gatesExist, poolsExist, seatMapsExist, eventsExist, eventRevisionsExist, sessionsExist, priceTiersExist, salesChannelsExist, sessionPoolsExist, holdsExist, holdItemsExist, sessionSeatsExist, realtimeEventsExist, jobSchedulesExist bool
+	var usersExist, organizationsExist, jobsExist, inboxExists, membershipsExist, identityLinksExist, invitationsExist, apiKeysExist, venuesExist, spacesExist, gatesExist, poolsExist, seatMapsExist, eventsExist, eventRevisionsExist, sessionsExist, priceTiersExist, salesChannelsExist, sessionPoolsExist, holdsExist, holdItemsExist, cartsExist, ordersExist, orderLinesExist, paymentAttemptsExist, refundsExist, entitlementsExist, ticketsExist, ticketSigningKeysExist, devicesExist, deviceAssignmentsExist, scanAttemptsExist, admissionsExist, sessionSeatsExist, realtimeEventsExist, jobSchedulesExist bool
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('users') IS NOT NULL`).Scan(&usersExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('organizations') IS NOT NULL`).Scan(&organizationsExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('jobs') IS NOT NULL`).Scan(&jobsExist))
@@ -441,6 +538,18 @@ func TestPlatformTenancyMigration(t *testing.T) {
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('session_ga_pools') IS NOT NULL`).Scan(&sessionPoolsExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('holds') IS NOT NULL`).Scan(&holdsExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('hold_items') IS NOT NULL`).Scan(&holdItemsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('carts') IS NOT NULL`).Scan(&cartsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('orders') IS NOT NULL`).Scan(&ordersExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('order_lines') IS NOT NULL`).Scan(&orderLinesExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('payment_attempts') IS NOT NULL`).Scan(&paymentAttemptsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('refunds') IS NOT NULL`).Scan(&refundsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('entitlements') IS NOT NULL`).Scan(&entitlementsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('tickets') IS NOT NULL`).Scan(&ticketsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('ticket_signing_keys') IS NOT NULL`).Scan(&ticketSigningKeysExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('devices') IS NOT NULL`).Scan(&devicesExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('device_assignments') IS NOT NULL`).Scan(&deviceAssignmentsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('scan_attempts') IS NOT NULL`).Scan(&scanAttemptsExist))
+	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('admissions') IS NOT NULL`).Scan(&admissionsExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('session_seats') IS NOT NULL`).Scan(&sessionSeatsExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('realtime_events') IS NOT NULL`).Scan(&realtimeEventsExist))
 	require.NoError(t, db.QueryRowContext(ctx, `SELECT to_regclass('job_schedules') IS NOT NULL`).Scan(&jobSchedulesExist))
@@ -465,6 +574,18 @@ func TestPlatformTenancyMigration(t *testing.T) {
 	require.False(t, sessionPoolsExist)
 	require.False(t, holdsExist)
 	require.False(t, holdItemsExist)
+	require.False(t, cartsExist)
+	require.False(t, ordersExist)
+	require.False(t, orderLinesExist)
+	require.False(t, paymentAttemptsExist)
+	require.False(t, refundsExist)
+	require.False(t, entitlementsExist)
+	require.False(t, ticketsExist)
+	require.False(t, ticketSigningKeysExist)
+	require.False(t, devicesExist)
+	require.False(t, deviceAssignmentsExist)
+	require.False(t, scanAttemptsExist)
+	require.False(t, admissionsExist)
 	require.False(t, sessionSeatsExist)
 	require.False(t, realtimeEventsExist)
 	require.False(t, jobSchedulesExist)
@@ -475,6 +596,14 @@ func assertConstraintViolation(t *testing.T, err error) {
 	var postgresError *pgconn.PgError
 	require.True(t, errors.As(err, &postgresError), "error = %v", err)
 	require.Equal(t, "23514", postgresError.Code)
+}
+
+func assertNamedConstraintViolation(t *testing.T, err error, constraint string) {
+	t.Helper()
+	var postgresError *pgconn.PgError
+	require.True(t, errors.As(err, &postgresError), "error = %v", err)
+	require.Equal(t, "23514", postgresError.Code)
+	require.Equal(t, constraint, postgresError.ConstraintName)
 }
 
 func assertUniqueViolation(t *testing.T, err error) {

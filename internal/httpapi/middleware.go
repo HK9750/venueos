@@ -108,6 +108,14 @@ func (w *responseWriter) Write(bytes []byte) (int, error) {
 
 func (w *responseWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
 
+func (w *responseWriter) RecordAPIError(method, route, code string) {
+	if recorder, ok := w.ResponseWriter.(interface {
+		RecordAPIError(string, string, string)
+	}); ok {
+		recorder.RecordAPIError(method, route, code)
+	}
+}
+
 func requestLogAttrs(ctx context.Context) []any {
 	return []any{
 		slog.String("request_id", requestid.FromContext(ctx)),

@@ -19,13 +19,13 @@ contracts, migrations, authorization, observability, recovery, tests, and docs.
 
 | Area | Status | Current state | Next action |
 |---|---|---|---|
-| API process | foundation | `net/http`, middleware, health/readiness, metrics, tracing, and stable VenueOS error envelope | Introduce `/v1` auth and tenant context |
+| API process | foundation | `net/http`, middleware, health/readiness, metrics, tracing, stable VenueOS error envelope, bearer authentication wired to tenant-scoped API-key verification, metadata listing, versioned API-key create/rotate/revoke commands with show-once secrets, permission-gated audit exploration, bounded entry dashboard summaries, one-time scanner-device enrollment/lifecycle/assignment commands, authorization-bound online scan service, durable public ticket-key resolution, and authenticated device scan route | Add OIDC adapter/session loading and private-key registration/rotation |
 | Worker process | implemented | PostgreSQL job claim/lease/retry/dead-letter lifecycle, bounded handlers, tracing and metrics, plus durable outbox relay mechanics | Wire domain event publishers and consumers through the relay |
-| Migration process | foundation | Embedded users plus organization/audit/outbox/idempotency/inbox/job/identity/membership/invitation/venue/seat-map/event/session/pricing/channel migrations with rollback tests | Add catalog publication schemas |
-| PostgreSQL | foundation | pgx pool, readiness, bounded transaction retry, atomic platform records, and tenant-scoped organization/access/venue repositories | Add pool metrics and catalog repositories |
+| Migration process | foundation | Embedded users plus organization/audit/outbox/idempotency/inbox/job/identity/membership/invitation/venue/seat-map/event/session/pricing/channel/cart/order/payment-attempt/ticket/entry/refund/device-assignment migrations with rollback tests | Add catalog publication schemas |
+| PostgreSQL | foundation | pgx pool, readiness, bounded transaction retry, atomic platform records, tenant-scoped organization/access/venue repositories, and bounded pool saturation/wait metrics | Add catalog repositories |
 | OpenAPI | foundation | Common error contract plus generated user, organization/access, and venue/space operations | Retire example user contract deliberately |
-| SQLC | foundation | Separate generated user and platform query packages | Split additional query packages by owning VenueOS domain as domains arrive |
-| Observability | foundation | structured logging, Prometheus/OpenTelemetry, and bounded worker job/queue metrics | Add stable API error/domain metrics and broader redaction tests |
+| SQLC | foundation | Separate generated user, platform, catalog, inventory, cart, order, payment, entry, and refund query packages | Split additional query packages by owning VenueOS domain as domains arrive |
+| Observability | foundation | structured logging, Prometheus/OpenTelemetry, bounded worker/job queue metrics, stable HTTP error-code metrics, PostgreSQL pool metrics, audit response redaction tests, and explicit entry-summary freshness fields | Add domain metrics and broader redaction tests |
 | Platform primitives | implemented | UUIDv7 IDs, checked minor-unit money, UTC clocks, stable error codes, bounded validation | Adopt in the first organization vertical slice |
 | CI/container | foundation | generation, race, integration, lint, vulnerability and image builds | Add contract compatibility, migration matrix, secret/image scans |
 | VenueOS documentation | verified | complete product-to-delivery planning set | Keep synchronized with every implementation slice |
@@ -70,7 +70,8 @@ Status: `in_progress`.
 6. [x] Implement atomic audit/outbox/idempotency repository primitives.
 7. [x] Implement worker claim/lease/retry/dead-letter loop and operational metrics.
 8. [x] Add PostgreSQL outbox claim/lease/ack/retry/dead-letter relay mechanics with bounded safe failures.
-9. [x] Add generated-code cleanliness and migration-from-empty CI checks.
+9. [x] Add provider-neutral inbox receive/deduplicate/lease/retry/dead-letter primitives.
+10. [x] Add generated-code cleanliness and migration-from-empty CI checks.
 
 Gate: a synthetic tenant-scoped command can commit mutation + audit + outbox +
 idempotency result once, replay safely, and be consumed by two competing workers.
@@ -87,9 +88,11 @@ implemented, while live OIDC verification and the final provider choice remain.
 5. [x] Add provider-neutral OIDC verifier port plus development/test fake; choose
    and harden the production adapter after the identity-provider decision.
 6. [x] Add API key create/show-once/hash/expiry/revoke/rotate workflow; rotation
-   defaults to immediate revocation without overlap.
+   defaults to immediate revocation without overlap. Metadata list, versioned
+   revocation, create, and rotate HTTP routes now return one-time secrets only on
+   the issuing response.
 7. [x] Add tenant-scoped repositories and defer RLS through the documented decision gate.
-8. [x] Add organization/membership/invitation OpenAPI operations and audit/outbox foundation.
+8. [x] Add organization/membership/invitation OpenAPI operations, permission-gated audit exploration, and audit/outbox foundation.
 9. [x] Run the first permission-matrix and cross-tenant substitution suite for the implemented access commands.
 
 Gate: every organization command/query denies guessed cross-tenant resources and
@@ -140,13 +143,37 @@ one terminal expiry/confirmation outcome, and correct operation without Redis.
 
 ## Epic 5 — Purchase-to-Entry Path
 
-Status: `not_started`; implement as sub-epics with independent gates.
+Status: `in_progress`; durable tenant-scoped cart/quote/order/payment-attempt
+foundations, ticket/entry persistence, provider-neutral transitions, credential
+verification, transactional online admission, and one-time scanner-device
+enrollment/lifecycle/assignment and credential authentication are implemented. The
+authorization-bound scan application service, durable public ticket-key resolution,
+authenticated HTTP scan route, idempotent entitlement-keyed ticket issuance
+transaction, strict `ticket.issue` payload, tenant-bound worker handler, and
+verified payment webhook receipt boundary are now in place; provider confirmation,
+worker/signer composition, delivery, private-key registration/rotation, offline
+scanning, and realtime fan-out remain.
 
-1. Pricing/cart and immutable commercial snapshots.
-2. Idempotent order creation and guest/staff access.
-3. Stripe adapter, payment inbox and order confirmation.
-4. Ticket entitlement, signing, rendering and delivery.
-5. Device enrollment and online scan/admission.
+1. [x] Add deterministic minor-unit pricing/quote arithmetic and immutable
+   snapshot digest plus a durable one-session cart with owner/version checks;
+   policy selection and checkout remain.
+2. [x] Add provider-neutral order/payment transition tables with idempotent
+   same-state replay and durable cart-to-order creation; guest/customer access
+   and confirmation remain.
+3. [x] Add provider-neutral payment intent/refund adapter and webhook-event
+   contract with inbox-ready hash/failure handling plus durable payment-attempt
+   constraints; Stripe wiring, capture policy, and order confirmation remain.
+4. [x] Add provider-neutral signed QR credential verification with key rotation
+   support, durable entitlement/ticket state, idempotent entitlement-keyed ticket
+   issuance, and the strict version-one issuance job contract; issuance artifacts,
+   rendering, delivery, and private-key registration remain.
+5. [~] Add pure online-scan decision checks, the serializable ticket/device
+   admission transaction, bounded staff entry summary read, one-time device
+   enrollment/lifecycle/assignment commands and credential authentication, the
+   authorization-bound scan application service, durable public ticket-key
+   resolution, authenticated HTTP scan route, idempotent ticket issuance, and
+   tenant-bound issuance worker adapter; worker/signer composition, private-key
+   registration/rotation, and offline scanning remain.
 6. WebSocket fan-out/replay over the already working polling model.
 
 Gate: publish → hold → checkout → provider webhook → ticket → scan succeeds in a
@@ -154,9 +181,17 @@ deployed-like environment, and every retry/race produces one logical outcome.
 
 ## Epic 6 — Operational Completion
 
-Status: `not_started`.
+Status: `in_progress`; provider-neutral refund invariants, lifecycle guards,
+durable locked refund requests, authenticated refund-request transport, execution state transitions, strict
+`refund.execute` jobs, and bounded provider orchestration are implemented, while
+policy, concrete provider wiring, webhook/reconciliation convergence, offline
+scanning, promotions, and reporting remain.
 
-Implement refund/cancellation/reconciliation, offline scanning, promotions,
+1. [x] Add provider-neutral refund amount ceilings, lifecycle guards, a locked
+   durable refund-request repository, authenticated idempotent refund-request
+   transport, and idempotent `refund.execute` orchestration with processing/final
+   states; policy, concrete provider wiring, and reconciliation remain.
+2. Implement refund/cancellation/reconciliation, offline scanning, promotions,
 waitlists, outbound webhooks, reporting and exports. Each capability follows the
 ordering and gates in `14-delivery-roadmap.md`; no growth feature displaces an
 unfinished financial, inventory, tenant or entry invariant.

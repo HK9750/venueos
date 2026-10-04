@@ -141,10 +141,31 @@ transitions, exponential backoff with jitter, safe failure messages, and a sweep
 for exhausted leases. Wiring each domain event to a concrete internal consumer,
 Redis fan-out, or provider adapter remains domain-specific and must preserve
 consumer idempotency.
+The bounded `internal/realtime` hub is available as the in-process consumer-side
+fan-out primitive: it copies payloads, caps each subscriber queue, and closes slow
+consumers with a resync-required signal. It never replaces the committed replay
+row or snapshot recovery path.
+
+The ticket slice now defines a strict version-one `ticket.issue` payload and a
+worker adapter that validates the job tenant against the payload before invoking
+the idempotent entitlement-keyed issuer. Malformed payloads are permanent
+failures; repository/signing failures retain the worker's bounded retry path.
+The worker composition root still requires an injected private-key/KMS signer
+before registering this handler, and private signing material is never persisted
+in PostgreSQL.
 
 Publication order is guaranteed only per aggregate version where required. A
 consumer encountering a future version may reload current state or delay; it must
 not assume global ordering.
+
+Inbound provider messages use the provider-neutral contract in
+`internal/platform/inbox`. Receipt stores only the tenant scope, provider/message
+identity, payload reference, and SHA-256 hash; duplicate identity with the same
+hash is acknowledged, while a changed hash is rejected for operator investigation.
+The processor claims bounded batches with expiring leases, treats handler timeout
+as failure, applies finite jittered retry, and dead-letters permanent or exhausted
+messages. Provider signature verification and provider-specific state transitions
+remain adapter/domain responsibilities.
 
 ## Payment Adapter
 
@@ -155,6 +176,35 @@ Port capabilities:
 - verify/decode webhook;
 - list transactions/disputes for reconciliation;
 - connectivity/account capability check.
+
+The provider-neutral `internal/payment` port now defines these capabilities
+without importing a provider SDK. Intent/refund requests require tenant/order
+scope, positive minor units, currency, and a bounded idempotency key. Adapter
+webhook verification returns only provider/event references, event type, payload
+hash/reference, sanitized status/amount facts, and occurrence time for inbox
+deduplication. Failure classification preserves transient/permanent/unknown
+recovery semantics without persisting raw provider errors. Stripe account model,
+capture policy, and concrete adapter implementation remain decision-gated.
+
+Webhook receipt now has a provider-neutral boundary that verifies the adapter
+result, checks the body hash, stores the raw body through a reference-backed
+payload adapter, and inserts a deduplicated inbox message. Duplicate identity
+with the same hash is acknowledged; changed hashes and invalid adapter output
+are rejected before inbox persistence. HTTP/provider composition remains pending
+the Stripe/account decision.
+
+Refund execution now has a matching provider-neutral worker boundary: a durable
+request is locked and moved to `processing` before `CreateRefund` is called, the
+stable refund idempotency key is reused on retries, and only amount/currency/
+provider/state-validated results can finalize the request. Transient and unknown
+failures leave a retry/reconciliation path; raw provider responses are never
+stored. The `refund.execute` job contract is tenant-bound and strictly decoded.
+
+The staff refund transport is now wired to the durable request repository. It
+requires the verified `order.refund` permission, derives organization and actor
+scope from authorization context, records `refund.requested` audit/outbox data
+atomically, and treats same-key/same-details retries as replays without a
+second mutation.
 
 Provider-specific status/error objects are mapped to domain-neutral classifications
 while sanitized raw references remain available to finance support. Each mutation

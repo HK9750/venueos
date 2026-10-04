@@ -28,6 +28,41 @@
 | `ETag` / `If-None-Match` | both | Snapshot/catalog caching and optimistic reads |
 | `Retry-After` | response | Rate limit, maintenance, or known transient unavailability |
 
+Protected organization and invitation routes require exactly one `Authorization:
+Bearer <credential>` value. The router verifies the credential before invoking a
+handler and places the resulting principal, organization, and permissions in the
+request context. Missing, malformed, duplicated, invalid, or expired credentials
+return `401` with a generic `unauthenticated` envelope and a bearer challenge;
+credential-store failures return `503` without exposing provider or database
+details. The current production adapter is the tenant-scoped API-key verifier;
+OIDC remains a provider-neutral adapter boundary.
+
+The first API-key transport slice is `GET
+/v1/organizations/{organization_id}/api-keys`, which returns bounded metadata
+pages and opaque organization-bound cursors. Secret hashes and issued tokens are
+not selected or serialized. API-key revocation is available at
+`DELETE /v1/organizations/{organization_id}/api-keys/{key_id}` with a required
+`If-Match` version and an `ETag` response; a retry of the terminal revocation is
+safe and does not create duplicate audit/outbox records. API-key creation and
+rotation are available at the collection and `/rotate` action routes; each
+successful command returns its high-entropy token only in that response, while
+metadata reads and later state changes never return secret material. Because the
+current persistence model stores only verifiers, callers must retain the issuing
+response when they need a token; secret replay storage is deliberately not
+introduced into PostgreSQL.
+
+`GET /v1/organizations/{organization_id}/audit-entries` is a bounded staff
+explorer. It supports allowlisted actor/action/subject/result/request/time filters,
+an opaque cursor bound to the complete filter set, deterministic descending
+`occurred_at,id` ordering, and safe before/after diffs with credential-like fields
+redacted at serialization.
+
+`GET /v1/organizations/{organization_id}/sessions/{session_id}/entry-summary`
+is the permission-gated staff entry dashboard read. Callers provide an explicit
+UTC `from`/`until` window no longer than 31 days. The response is derived from
+immutable scan attempts and reports totals by result, gate, minute, and price-tier
+ticket type, together with `data_as_of` and `data_delay_seconds`.
+
 ## Error Envelope
 
 ```json
@@ -187,6 +222,13 @@ POST   /v1/device/scans/batch
 GET    /v1/organizations/{organization_id}/sessions/{session_id}/entry-summary
 POST   /v1/organizations/{organization_id}/scan-attempts/{scan_id}/override
 ```
+
+The refund request route is a staff-only durable command. Its body contains the
+tenant-scoped payment attempt, positive integer minor amount, ISO currency, and
+bounded reason; `Idempotency-Key` is required. A successful response is a
+`requested` refund (`201`) and provider execution is asynchronous. A matching
+retry replays the existing refund, while a different request under the same
+order/key returns `409 idempotency_key_reused`.
 
 The single online scan endpoint is optimized for low latency. Batch sync has a
 strict maximum item/byte count and per-item result, while authentication/manifest

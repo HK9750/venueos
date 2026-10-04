@@ -75,6 +75,9 @@ func run() error {
 		return err
 	}
 	metrics := observability.NewMetrics()
+	if err := metrics.RegisterDatabasePool(pool); err != nil {
+		return err
+	}
 	transactions, err := database.NewTransactionRunner(pool, database.DefaultRetryPolicy())
 	if err != nil {
 		return err

@@ -151,6 +151,82 @@ func (q *Queries) InsertAPIKey(ctx context.Context, arg InsertAPIKeyParams) (Api
 	return i, err
 }
 
+const listAPIKeys = `-- name: ListAPIKeys :many
+SELECT id, organization_id, prefix, name, scopes,
+       created_by_type, created_by_id, expires_at, revoked_at,
+       last_used_at, version, created_at, updated_at
+FROM api_keys
+WHERE organization_id = $1
+  AND (
+      $2::timestamptz IS NULL
+      OR (created_at, id) < ($2::timestamptz, $3::uuid)
+  )
+ORDER BY created_at DESC, id DESC
+LIMIT $4
+`
+
+type ListAPIKeysParams struct {
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	AfterCreatedAt pgtype.Timestamptz `json:"after_created_at"`
+	AfterID        pgtype.UUID        `json:"after_id"`
+	LimitCount     int32              `json:"limit_count"`
+}
+
+type ListAPIKeysRow struct {
+	ID             uuid.UUID          `json:"id"`
+	OrganizationID uuid.UUID          `json:"organization_id"`
+	Prefix         string             `json:"prefix"`
+	Name           string             `json:"name"`
+	Scopes         []string           `json:"scopes"`
+	CreatedByType  string             `json:"created_by_type"`
+	CreatedByID    string             `json:"created_by_id"`
+	ExpiresAt      pgtype.Timestamptz `json:"expires_at"`
+	RevokedAt      pgtype.Timestamptz `json:"revoked_at"`
+	LastUsedAt     pgtype.Timestamptz `json:"last_used_at"`
+	Version        int64              `json:"version"`
+	CreatedAt      time.Time          `json:"created_at"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+}
+
+func (q *Queries) ListAPIKeys(ctx context.Context, arg ListAPIKeysParams) ([]ListAPIKeysRow, error) {
+	rows, err := q.db.Query(ctx, listAPIKeys,
+		arg.OrganizationID,
+		arg.AfterCreatedAt,
+		arg.AfterID,
+		arg.LimitCount,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAPIKeysRow{}
+	for rows.Next() {
+		var i ListAPIKeysRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.OrganizationID,
+			&i.Prefix,
+			&i.Name,
+			&i.Scopes,
+			&i.CreatedByType,
+			&i.CreatedByID,
+			&i.ExpiresAt,
+			&i.RevokedAt,
+			&i.LastUsedAt,
+			&i.Version,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockOrganizationForAPIKey = `-- name: LockOrganizationForAPIKey :one
 SELECT id, status
 FROM organizations

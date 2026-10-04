@@ -11,6 +11,29 @@ INSERT INTO audit_entries (
     $18
 );
 
+-- name: ListAuditEntries :many
+SELECT id, organization_id, actor_type, actor_id, effective_actor_type,
+       effective_actor_id, action, subject_type, subject_id, result, reason,
+       request_id, trace_id, source_ip, device_id, before_data, after_data,
+       occurred_at
+FROM audit_entries
+WHERE organization_id = sqlc.arg(organization_id)
+  AND (sqlc.narg(actor_type)::text IS NULL OR actor_type = sqlc.narg(actor_type)::text)
+  AND (sqlc.narg(actor_id)::text IS NULL OR actor_id = sqlc.narg(actor_id)::text)
+  AND (sqlc.narg(action)::text IS NULL OR action = sqlc.narg(action)::text)
+  AND (sqlc.narg(subject_type)::text IS NULL OR subject_type = sqlc.narg(subject_type)::text)
+  AND (sqlc.narg(subject_id)::text IS NULL OR subject_id = sqlc.narg(subject_id)::text)
+  AND (sqlc.narg(result)::text IS NULL OR result = sqlc.narg(result)::text)
+  AND (sqlc.narg(request_id)::text IS NULL OR request_id = sqlc.narg(request_id)::text)
+  AND (sqlc.narg(occurred_from)::timestamptz IS NULL OR occurred_at >= sqlc.narg(occurred_from)::timestamptz)
+  AND (sqlc.narg(occurred_until)::timestamptz IS NULL OR occurred_at < sqlc.narg(occurred_until)::timestamptz)
+  AND (
+      sqlc.narg(cursor_occurred_at)::timestamptz IS NULL
+      OR (occurred_at, id) < (sqlc.narg(cursor_occurred_at)::timestamptz, sqlc.narg(cursor_id)::uuid)
+  )
+ORDER BY occurred_at DESC, id DESC
+LIMIT sqlc.arg(page_limit);
+
 -- name: InsertOutboxEvent :exec
 INSERT INTO outbox_events (
     id, organization_id, aggregate_type, aggregate_id, aggregate_version,
@@ -21,6 +44,105 @@ INSERT INTO outbox_events (
     $6, $7, $8, $9, $10,
     'pending', $11, $12, $12
 );
+
+-- name: InsertInboxMessage :execrows
+INSERT INTO inbox_messages (
+    id, organization_id, source, message_id, payload_reference, payload_sha256,
+    state, available_at, received_at, updated_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6,
+    'received', $7, $8, $9
+)
+ON CONFLICT (source, message_id)
+DO NOTHING;
+
+-- name: GetInboxMessageByKey :one
+SELECT id, organization_id, source, message_id, payload_reference,
+       payload_sha256, state, attempt_count, available_at, lease_owner,
+       lease_expires_at, last_error_code, last_error_message, received_at,
+       processed_at, updated_at
+FROM inbox_messages
+WHERE source = $1
+  AND message_id = $2;
+
+-- name: ClaimInboxMessages :many
+WITH candidates AS (
+    SELECT source.id
+    FROM inbox_messages AS source
+    WHERE (
+        (source.state IN ('received', 'failed') AND source.available_at <= sqlc.arg(now))
+        OR (source.state = 'processing' AND source.lease_expires_at <= sqlc.arg(now))
+    )
+      AND source.attempt_count < sqlc.arg(max_attempts)
+    ORDER BY source.available_at ASC, source.received_at ASC, source.id ASC
+    LIMIT sqlc.arg(batch_size)
+    FOR UPDATE SKIP LOCKED
+)
+UPDATE inbox_messages AS message
+SET state = 'processing',
+    attempt_count = message.attempt_count + 1,
+    lease_owner = sqlc.arg(lease_owner),
+    lease_expires_at = sqlc.arg(now) + make_interval(secs => sqlc.arg(lease_seconds)),
+    processed_at = NULL,
+    updated_at = sqlc.arg(now),
+    last_error_code = CASE WHEN message.state = 'processing' THEN 'lease_expired' ELSE message.last_error_code END,
+    last_error_message = CASE WHEN message.state = 'processing' THEN 'Previous inbox lease expired.' ELSE message.last_error_message END
+FROM candidates
+WHERE message.id = candidates.id
+RETURNING message.*;
+
+-- name: MarkInboxMessageProcessed :execrows
+UPDATE inbox_messages
+SET state = 'processed',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = sqlc.arg(processed_at),
+    last_error_code = NULL,
+    last_error_message = NULL,
+    updated_at = sqlc.arg(processed_at)
+WHERE id = sqlc.arg(id)
+  AND state = 'processing'
+  AND lease_owner = sqlc.arg(lease_owner);
+
+-- name: RetryInboxMessage :execrows
+UPDATE inbox_messages
+SET state = 'failed',
+    available_at = sqlc.arg(available_at),
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = NULL,
+    last_error_code = sqlc.arg(error_code),
+    last_error_message = sqlc.arg(error_message),
+    updated_at = sqlc.arg(available_at)
+WHERE id = sqlc.arg(id)
+  AND state = 'processing'
+  AND lease_owner = sqlc.arg(lease_owner);
+
+-- name: DeadLetterInboxMessage :execrows
+UPDATE inbox_messages
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = NULL,
+    last_error_code = sqlc.arg(error_code),
+    last_error_message = sqlc.arg(error_message),
+    updated_at = sqlc.arg(dead_lettered_at)
+WHERE id = sqlc.arg(id)
+  AND state = 'processing'
+  AND lease_owner = sqlc.arg(lease_owner);
+
+-- name: DeadLetterExhaustedInboxLeases :execrows
+UPDATE inbox_messages
+SET state = 'dead_letter',
+    lease_owner = NULL,
+    lease_expires_at = NULL,
+    processed_at = NULL,
+    last_error_code = 'lease_expired',
+    last_error_message = 'Inbox lease expired after the final attempt.',
+    updated_at = sqlc.arg(now)
+WHERE state = 'processing'
+  AND lease_expires_at <= sqlc.arg(now)
+  AND attempt_count >= sqlc.arg(max_attempts);
 
 -- name: ClaimOutboxEvents :many
 WITH candidates AS (
